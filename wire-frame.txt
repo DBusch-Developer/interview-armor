@@ -1,0 +1,457 @@
+Interview Armor: Dev Mode
+
+Home
+│
+├── Practice Questions
+│   └── Browse junior developer interview questions
+│
+├── Mock Interview
+│   └── Speak answer → record → transcribe → AI feedback → save
+│
+├── Saved Feedback
+│   └── Review past answers, transcripts, and AI feedback
+│
+└── About
+    └── Explain the purpose, audience, and tech used
+
+
+
+NAVBAR WIREFRAME:
+
+----------------------------------------------------------------------------
+| Interview Armor: Dev Mode        Home | About | Practice | Mock | Saved  |
+----------------------------------------------------------------------------
+
+Mobile Version:
+
+--------------------------------
+| Interview Armor: Dev Mode  ☰ |
+--------------------------------
+
+Menu opens:
+Home
+Practice Questions
+Mock Interview
+Saved Feedback
+About
+
+HOME PAGE WIREFRAME:
+
+----------------------------------------------------------------------------
+| Interview Armor: Dev Mode        Home | About | Practice | Mock | Saved  |
+----------------------------------------------------------------------------
+
+
+[ HERO SECTION ]
+
+Interview Armor: Dev Mode
+
+Practice junior web developer interviews out loud.
+Record your answer, get a transcript, and receive AI-powered feedback.
+
+[ Start Mock Interview ]     [ Browse Questions ]
+
+------------------------------------------------------------
+
+[ HOW IT WORKS ]
+
+ ------------------------------------------------
+| 1. Get a Question                              |
+| Choose from HTML, CSS, JavaScript, Git, DOM,   |
+| and behavioral junior developer questions.     |
+ ------------------------------------------------
+
+ ------------------------------------------------
+| 2. Speak Your Answer                           |
+| Practice like a real interview by answering    |
+| out loud instead of typing.                    |
+ ------------------------------------------------
+
+ ------------------------------------------------
+| 3. Get AI Feedback                             |
+| Your spoken answer is transcribed and reviewed |
+| with coaching feedback.                        |
+ ------------------------------------------------
+
+------------------------------------------------------------
+
+[ FEATURE PREVIEW CARDS ]
+
+ ------------------------------------------------
+| Mock Interview Mode                            |
+| Record, transcribe, and get feedback.          |
+| [ Start Mock Interview ]                       |
+ ------------------------------------------------
+
+ ------------------------------------------------
+| Practice Questions                             |
+| Review common junior web developer questions.  |
+| [ Browse Questions ]                           |
+ ------------------------------------------------
+
+ ------------------------------------------------
+| Saved Feedback                                 |
+| Revisit your transcripts and coaching notes.   |
+| [ View Saved Feedback ]                        |
+ ------------------------------------------------
+
+------------------------------------------------------------
+
+[ FOOTER ]
+
+Built for aspiring junior web developers preparing for interviews.
+
+------------------------------------------------------------
+
+ABOUT PAGE
+
+----------------------------------------------------------------------------
+| Interview Armor: Dev Mode        Home | About | Practice | Mock | Saved  |
+----------------------------------------------------------------------------
+
+[ PAGE HEADER ]
+
+About Interview Armor
+
+------------------------------------------------------------
+
+[ ABOUT THE APP ]
+
+ --------------------------------------------------------
+| What is Interview Armor: Dev Mode?                    |
+|                                                        |
+| Interview Armor is a junior web developer interview    |
+| prep app that helps users practice speaking their      |
+| answers out loud.                                      |
+|                                                        |
+| Instead of only reading questions or typing answers,    |
+| users can record themselves, review playback, get a    |
+| transcript, and receive AI-powered feedback.           |
+ --------------------------------------------------------
+
+------------------------------------------------------------
+
+[ WHO IT IS FOR ]
+
+ --------------------------------------------------------
+| Built For                                              |
+|                                                        |
+| - Coding bootcamp students                             |
+| - Career changers                                      |
+| - Junior web developer applicants                      |
+| - People preparing for technical interviews            |
+| - People who want to practice speaking with confidence |
+ --------------------------------------------------------
+
+------------------------------------------------------------
+
+[ TECH USED ]
+
+ --------------------------------------------------------
+| Built With                                             |
+|                                                        |
+| [ HTML ] [ CSS ] [ Tailwind ] [ JavaScript ]           |
+| [ Groq API ] [ localStorage ]                          |
+ --------------------------------------------------------
+
+------------------------------------------------------------
+
+[ PHASE 1 FEATURES ]
+
+ --------------------------------------------------------
+| Current Version                                        |
+|                                                        |
+| - Junior developer interview question bank             |
+| - Mock interview recording                             |
+| - Audio playback                                       |
+| - Speech-to-text transcription                         |
+| - AI-generated interview feedback                      |
+| - Saved transcripts and feedback                       |
+ --------------------------------------------------------
+
+------------------------------------------------------------
+
+[ FUTURE FEATURES ]
+
+ --------------------------------------------------------
+| Phase 2 Ideas                                          |
+|                                                        |
+| - User accounts                                        |
+| - Progress dashboard                                   |
+| - Score history over time                              |
+| - More question categories                             |
+| - Real interview prep plans                            |
+| - Backend API security                                 |
+ --------------------------------------------------------
+
+
+ [ FOOTER ]
+
+Built for aspiring junior web developers preparing for interviews.
+
+------------------------------------------------------------
+
+PRACTICE QUESTIONS PAGE
+
+----------------------------------------------------------------------------
+| Interview Armor: Dev Mode        Home | About | Practice | Mock | Saved  |
+----------------------------------------------------------------------------
+
+[ PAGE HEADER ]
+
+Practice Questions
+
+Browse common junior web developer interview questions before starting a mock interview.
+
+------------------------------------------------------------
+
+[ CATEGORY FILTERS ]
+
+[ All ] [ HTML ] [ CSS ] [ JavaScript ] [ DOM ] [ Git/GitHub ] [ Behavioral ]
+
+------------------------------------------------------------
+
+[ QUESTION CARD ]
+
+ --------------------------------------------------------
+| Category: JavaScript                                   |
+|                                                        |
+| Question:                                              |
+| What is the difference between let, const, and var?    |
+|                                                        |
+| Interview Tip:                                         |
+| Explain reassignment, scope, and when you would use    |
+| each one.                                              |
+|                                                        |
+| [ Practice This in Mock Interview ]                    |
+ --------------------------------------------------------
+
+ --------------------------------------------------------
+| Category: CSS                                          |
+|                                                        |
+| Question:                                              |
+| What is the CSS box model?                             |
+|                                                        |
+| Interview Tip:                                         |
+| Mention content, padding, border, and margin.          |
+|                                                        |
+| [ Practice This in Mock Interview ]                    |
+ --------------------------------------------------------
+
+ --------------------------------------------------------
+| Category: Behavioral                                   |
+|                                                        |
+| Question:                                              |
+| Tell me about a project you built.                     |
+|                                                        |
+| Interview Tip:                                         |
+| Explain the problem, the tools you used, and what      |
+| you learned.                                           |
+|                                                        |
+| [ Practice This in Mock Interview ]                    |
+ --------------------------------------------------------
+
+
+ [ FOOTER ]
+
+Built for aspiring junior web developers preparing for interviews.
+
+------------------------------------------------------------
+
+MOCK INTERVIEW PAGE 
+
+----------------------------------------------------------------------------
+| Interview Armor: Dev Mode        Home | About | Practice | Mock | Saved  |
+----------------------------------------------------------------------------
+
+[ PAGE HEADER ]
+
+Mock Interview Mode
+
+Answer out loud like a real junior developer interview.
+
+------------------------------------------------------------
+
+[ MOCK INTERVIEW CONTROL BAR ]
+
+Category:
+[ All Categories v ]
+
+Question Type:
+[ Technical v ] [ Behavioral v ]
+
+[ New Random Question ]
+
+------------------------------------------------------------
+
+[ QUESTION PANEL ]
+
+ --------------------------------------------------------
+| Category: JavaScript                                  |
+| Question 1                                            |
+|                                                       |
+| What is the DOM, and how does JavaScript use it?      |
+|                                                       |
+| Tip before you answer:                                |
+| Try to explain what the DOM is, why it matters, and   |
+| give a simple example.                                |
+ --------------------------------------------------------
+
+------------------------------------------------------------
+
+[ RECORDING PANEL ]
+
+ --------------------------------------------------------
+| Speak Your Answer                                     |
+|                                                       |
+| Recording Status: Not Recording                       |
+|                                                       |
+| [ Start Recording ]     [ Stop Recording ]            |
+|                                                       |
+| Audio Playback:                                       |
+| [ audio player appears after recording ]              |
+|                                                       |
+| [ Transcribe My Answer ]                              |
+ --------------------------------------------------------
+
+------------------------------------------------------------
+
+[ TRANSCRIPT PANEL ]
+
+ --------------------------------------------------------
+| Transcript                                            |
+|                                                       |
+| Your spoken answer will appear here after             |
+| transcription.                                        |
+|                                                       |
+| Example:                                              |
+| "The DOM is the browser's version of the HTML..."     |
+|                                                       |
+| [ Send Transcript for AI Feedback ]                   |
+ --------------------------------------------------------
+
+------------------------------------------------------------
+
+[ AI FEEDBACK PANEL ]
+
+ --------------------------------------------------------
+| AI Interview Feedback                                 |
+|                                                       |
+| Strength:                                             |
+| You explained the basic idea clearly.                 |
+|                                                       |
+| Improve:                                              |
+| Add a specific example of how you used the DOM.       |
+|                                                       |
+| Stronger Answer Idea:                                 |
+| Mention selecting elements, changing content, and     |
+| responding to user events.                            |
+|                                                       |
+| Confidence Tip:                                       |
+| Slow down and structure your answer in 2-3 parts.     |
+ --------------------------------------------------------
+
+------------------------------------------------------------
+
+[ CONFIDENCE + SAVE PANEL ]
+
+ --------------------------------------------------------
+| How confident do you feel about this answer?          |
+|                                                       |
+| [ Needs Work ] [ Almost Ready ] [ Strong Answer ]     |
+|                                                       |
+| [ Save Transcript + Feedback ]                        |
+| [ Try Another Question ]                              |
+ --------------------------------------------------------
+
+ [ FOOTER ]
+
+Built for aspiring junior web developers preparing for interviews.
+
+------------------------------------------------------------
+
+SAVED FEEDBACK PAGE
+
+----------------------------------------------------------------------------
+| Interview Armor: Dev Mode        Home | About | Practice | Mock | Saved  |
+----------------------------------------------------------------------------
+
+[ PAGE HEADER ]
+
+Saved Feedback
+
+Review your past interview answers, transcripts, and AI coaching notes.
+
+------------------------------------------------------------
+
+[ FILTER / SEARCH BAR ]
+
+Search saved answers:
+[ Search by question, category, or keyword... ]
+
+Filter by category:
+[ All ] [ HTML ] [ CSS ] [ JavaScript ] [ DOM ] [ Git ] [ Behavioral ]
+
+Filter by confidence:
+[ All ] [ Needs Work ] [ Almost Ready ] [ Strong Answer ]
+
+------------------------------------------------------------
+
+[ SAVED ANSWER CARD ]
+
+ --------------------------------------------------------
+| JavaScript                         Confidence: Almost  |
+| Saved: May 11, 2026                                    |
+|                                                        |
+| Question:                                              |
+| What is the DOM, and how does JavaScript use it?       |
+|                                                        |
+| Transcript:                                            |
+| "The DOM is how JavaScript can see and change the      |
+| webpage. You can use it to grab buttons and update     |
+| text when someone clicks..."                           |
+|                                                        |
+| AI Feedback:                                           |
+| Strength: Clear beginner-friendly explanation.         |
+| Improve: Add the phrase "Document Object Model."       |
+| Stronger Answer Idea: Give one project example.        |
+|                                                        |
+| [ Delete ]     [ Practice Again ]                      |
+ --------------------------------------------------------
+
+ --------------------------------------------------------
+| Behavioral                       Confidence: Strong    |
+| Saved: May 11, 2026                                    |
+|                                                        |
+| Question:                                              |
+| Tell me about a project you built.                     |
+|                                                        |
+| Transcript:                                            |
+| "I built a responsive website using HTML, CSS, and     |
+| JavaScript..."                                         |
+|                                                        |
+| AI Feedback:                                           |
+| Strength: Good project context and tools mentioned.    |
+| Improve: Add what problem the project solved.          |
+|                                                        |
+| [ Delete ]     [ Practice Again ]                      |
+ --------------------------------------------------------
+
+------------------------------------------------------------
+
+[ EMPTY STATE ]
+
+If no saved answers exist yet:
+
+ --------------------------------------------------------
+| No saved feedback yet.                                |
+| Complete a mock interview to save your first answer.  |
+|                                                       |
+| [ Start Mock Interview ]                              |
+ --------------------------------------------------------
+
+ [ FOOTER ]
+
+Built for aspiring junior web developers preparing for interviews.
+
+------------------------------------------------------------
