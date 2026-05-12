@@ -1524,6 +1524,16 @@ h3 {
   }
 }
 
+/* ── Accessibility: keyboard focus rings ────────────────────
+   Uses crimson to stay on-brand; only shows on keyboard nav
+─────────────────────────────────────────────────────────── */
+.nav-link:focus-visible,
+.nav-toggle:focus-visible {
+  outline: 2px solid var(--crimson);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
 @media (max-width: 760px) {
   :root {
     --nav-height: 86px;
