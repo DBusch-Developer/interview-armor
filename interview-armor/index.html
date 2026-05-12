@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interview Armor: Dev Mode</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="description" content="Interview Armor helps junior developers practice spoken interview answers and get AI coaching.">
+  <title>Interview Armor: Dev Mode | Home</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -14,63 +14,70 @@
   <header class="site-header">
     <div class="nav-shell">
 
-      <a href="index.html" class="brand" aria-label="Interview Armor — home">
+      <a class="brand" href="index.html" aria-label="Interview Armor — home">
         <img src="../assets/logo-mark.svg" alt="">
-        <div class="brand-text">
-          <span>Interview</span>
-          <span>Armor</span>
-        </div>
+        <span class="brand-text"><span>Interview</span><span>Armor</span></span>
       </a>
 
       <button class="nav-toggle"
+              type="button"
+              aria-label="Toggle navigation"
               aria-expanded="false"
-              aria-controls="main-nav"
-              aria-label="Toggle navigation">
+              data-nav-toggle>
         <span class="nav-toggle-lines"></span>
       </button>
 
-      <nav id="main-nav" class="main-nav" aria-label="Site navigation">
-        <a href="index.html" class="nav-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.45" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/>
+      <nav class="main-nav" aria-label="Primary navigation" data-main-nav>
+        <a class="nav-link" href="index.html" data-page="index.html">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 11.5 12 4l9 7.5"/>
+            <path d="M5 10.5V20h14v-9.5"/>
+            <path d="M9 20v-6h6v6"/>
           </svg>
-          Home
+          <span>Home</span>
         </a>
-        <a href="about.html" class="nav-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.45" aria-hidden="true">
-            <circle cx="12" cy="12" r="10"/>
-            <path stroke-linecap="round" d="M12 16v-4m0-4h.01"/>
+        <a class="nav-link" href="practice.html" data-page="practice.html">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="8"/>
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
           </svg>
-          About
+          <span>Practice</span>
         </a>
-        <a href="practice.html" class="nav-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.45" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
-            <rect x="9" y="3" width="6" height="4" rx="1"/>
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 14l2 2 4-4"/>
+        <a class="nav-link" href="mock.html" data-page="mock.html">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 14a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v4a4 4 0 0 0 4 4Z"/>
+            <path d="M19 10a7 7 0 0 1-14 0M12 17v4M8 21h8"/>
           </svg>
-          Practice
+          <span>Mock</span>
         </a>
-        <a href="mock.html" class="nav-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.45" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 10a7 7 0 01-14 0M12 19v4m-3 0h6"/>
+        <a class="nav-link" href="saved.html" data-page="saved.html">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M4 5h16v11H8l-4 4z"/>
+            <path d="M8 9h8M8 13h5"/>
           </svg>
-          Mock
+          <span>Saved</span>
         </a>
-        <a href="saved.html" class="nav-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.45" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+        <a class="nav-link" href="about.html" data-page="about.html">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/>
           </svg>
-          Saved
+          <span>About</span>
         </a>
       </nav>
+
+      <div class="student-card" aria-label="Student status">
+        <span class="student-coin">侍</span>
+        <span>
+          <strong>Dojo Student</strong>
+          <small>Keep training.</small>
+        </span>
+      </div>
 
     </div>
   </header>
 
-  <div class="page-shell">
+  <main id="main" class="page-shell">
     <div class="dojo-layout">
 
       <aside class="dojo-sidebar" aria-label="Training stats">
@@ -82,19 +89,18 @@
           </div>
           <p class="sidebar-mantra">Discipline<br>Focus<br>Growth</p>
           <div class="sidebar-stats">
-            <span class="side-stat"><strong>Today's Focus</strong>Behavioral Questions</span>
-            <span class="side-stat"><strong>7 days</strong>Practice streak</span>
+            <span class="side-stat"><strong>Today's Focus</strong>Pick a category</span>
+            <span class="side-stat"><strong>0 days</strong>Practice streak</span>
             <span class="side-stat"><strong>30</strong>Question bank</span>
           </div>
           <div class="side-art-spacer"></div>
         </div>
       </aside>
 
-      <main id="main">
-      </main>
+      <!-- Home page main content will be added in a later commit -->
 
     </div>
-  </div>
+  </main>
 
   <footer class="footer">
     <div class="brush-divider" role="presentation"></div>
