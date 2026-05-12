@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="fade" x1="0" x2="1">
+      <stop offset="0%" stop-color="#fbf3df" stop-opacity="0"/>
+      <stop offset="35%" stop-color="#fbf3df" stop-opacity=".18"/>
+      <stop offset="100%" stop-color="#fbf3df" stop-opacity=".55"/>
+    </linearGradient>
+    <filter id="inkBlur">
+      <feGaussianBlur stdDeviation="0.4"/>
+    </filter>
+  </defs>
+  <rect width="900" height="420" fill="transparent"/>
+  <circle cx="694" cy="96" r="45" fill="#9b1d20" opacity=".85"/>
+  <path d="M58 310C160 210 238 238 327 156c56 94 105 101 170 41 52 77 113 95 210 30 45 60 89 77 151 58v135H58Z"
+        fill="#2a2924" opacity=".11" filter="url(#inkBlur)"/>
+  <path d="M133 330c78-52 154-69 228-51 93 23 142-19 234-39 73-16 139 4 222 55"
+        fill="none" stroke="#2a2924" stroke-width="7" opacity=".13" stroke-linecap="round"/>
+  <path d="M660 189h98v20h-13v95h-17v-95h-39v95h-17v-95h-12z" fill="#2a2924" opacity=".26"/>
+  <path d="M642 177c50 15 91 15 133 0" fill="none" stroke="#2a2924" stroke-width="16" opacity=".24" stroke-linecap="round"/>
+  <path d="M675 244h68" stroke="#2a2924" stroke-width="10" opacity=".2"/>
+  <path d="M495 126c8-5 16-5 24 0M544 111c8-5 16-5 24 0M593 135c8-5 16-5 24 0"
+        fill="none" stroke="#2a2924" stroke-width="4" opacity=".38" stroke-linecap="round"/>
+  <rect width="900" height="420" fill="url(#fade)"/>
+</svg>
