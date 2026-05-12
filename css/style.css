@@ -605,12 +605,13 @@ h3 {
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   margin-top: 1rem;
+   align-items: start;
 }
 
 .question-card {
   display: grid;
   align-content: space-between;
-  min-height: 245px;
+  min-height: 320px;
 }
 
 .question-card h3 {

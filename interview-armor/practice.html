@@ -1,118 +1,187 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
       name="description"
       content="Interview Armor helps developers practice spoken interview answers at every level — beginner, intermediate, and advanced — with AI coaching."
     />
-  <title>Interview Armor: Dev Mode | Practice</title>
-  <link rel="icon" type="image/png" href="../assets/favicon.png?v=1">
-  <link rel="stylesheet" href="../css/style.css">
-</head>
-<body>
+    <title>Interview Armor: Dev Mode | Practice</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png?v=1" />
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
 
-  <a class="skip-link" href="#main">Skip to content</a>
-
-  <header class="site-header">
-    <div class="nav-shell">
-
-      <a class="brand" href="index.html" aria-label="Interview Armor — home">
-        <img src="../assets/logo-mark.svg" alt="">
-        <span class="brand-text"><span>Interview</span><span>Armor</span></span>
-      </a>
-
-      <button class="nav-toggle"
-              type="button"
-              aria-label="Toggle navigation"
-              aria-expanded="false"
-              data-nav-toggle>
-        <span class="nav-toggle-lines"></span>
-      </button>
-
-      <nav class="main-nav" aria-label="Primary navigation" data-main-nav>
-        <a class="nav-link" href="index.html" data-page="index.html">
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M3 11.5 12 4l9 7.5"/>
-            <path d="M5 10.5V20h14v-9.5"/>
-            <path d="M9 20v-6h6v6"/>
-          </svg>
-          <span>Home</span>
+    <header class="site-header">
+      <div class="nav-shell">
+        <a class="brand" href="index.html" aria-label="Interview Armor — home">
+          <img src="../assets/logo-mark.svg" alt="" />
+          <span class="brand-text"
+            ><span>Interview</span><span>Armor</span></span
+          >
         </a>
-        <a class="nav-link" href="practice.html" data-page="practice.html">
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="12" cy="12" r="8"/>
-            <circle cx="12" cy="12" r="4"/>
-            <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-          </svg>
-          <span>Practice</span>
-        </a>
-        <a class="nav-link" href="mock.html" data-page="mock.html">
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M12 14a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v4a4 4 0 0 0 4 4Z"/>
-            <path d="M19 10a7 7 0 0 1-14 0M12 17v4M8 21h8"/>
-          </svg>
-          <span>Mock</span>
-        </a>
-        <a class="nav-link" href="saved.html" data-page="saved.html">
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M4 5h16v11H8l-4 4z"/>
-            <path d="M8 9h8M8 13h5"/>
-          </svg>
-          <span>Saved</span>
-        </a>
-        <a class="nav-link" href="about.html" data-page="about.html">
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/>
-          </svg>
-          <span>About</span>
-        </a>
-      </nav>
 
-      <div class="student-card" aria-label="Student status">
-        <span class="student-coin">侍</span>
-        <span>
-          <strong>Dojo Student</strong>
-          <small>Keep training.</small>
-        </span>
-      </div>
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-label="Toggle navigation"
+          aria-expanded="false"
+          data-nav-toggle
+        >
+          <span class="nav-toggle-lines"></span>
+        </button>
 
-    </div>
-  </header>
+        <nav class="main-nav" aria-label="Primary navigation" data-main-nav>
+          <a class="nav-link" href="index.html" data-page="index.html">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <path d="M3 11.5 12 4l9 7.5" />
+              <path d="M5 10.5V20h14v-9.5" />
+              <path d="M9 20v-6h6v6" />
+            </svg>
+            <span>Home</span>
+          </a>
+          <a class="nav-link" href="practice.html" data-page="practice.html">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <circle cx="12" cy="12" r="8" />
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+            </svg>
+            <span>Practice</span>
+          </a>
+          <a class="nav-link" href="mock.html" data-page="mock.html">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <path d="M12 14a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v4a4 4 0 0 0 4 4Z" />
+              <path d="M19 10a7 7 0 0 1-14 0M12 17v4M8 21h8" />
+            </svg>
+            <span>Mock</span>
+          </a>
+          <a class="nav-link" href="saved.html" data-page="saved.html">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <path d="M4 5h16v11H8l-4 4z" />
+              <path d="M8 9h8M8 13h5" />
+            </svg>
+            <span>Saved</span>
+          </a>
+          <a class="nav-link" href="about.html" data-page="about.html">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <path d="M4 20V9M10 20V4M16 20v-7M22 20H2" />
+            </svg>
+            <span>About</span>
+          </a>
+        </nav>
 
-  <main id="main" class="page-shell">
-    <div class="dojo-layout">
-
-      <aside class="dojo-sidebar" aria-label="Training stats">
-        <div class="sidebar-inner">
-          <div class="sidebar-kanji sidebar-kanji-real" aria-label="Discipline, focus, and growth in Japanese">
-            <span><strong>守</strong><small></small></span>
-            <span><strong>破 </strong><small></small></span>
-            <span><strong>破 </strong><small></small></span>
-          </div>
-                   <p class="sidebar-mantra"><span>Discipline</span><span>Focus</span><span>Growth</span></p>
-
-          <div class="sidebar-stats reference-side-stats">
-            <span class="side-stat side-stat-hot"><i>◎</i><strong>Today's Focus</strong>Pick a category</span>
-            <span class="side-stat"><i>♨</i><strong>Streak</strong>0 days</span>
-            <span class="side-stat"><i>○</i><strong>Sessions</strong>0 this week</span>
-            <span class="side-stat"><i>◉</i><strong>Accuracy</strong>—</span>
-          </div>
-          <div class="side-art-spacer"></div>
+        <div class="student-card" aria-label="Student status">
+          <span class="student-coin">侍</span>
+          <span>
+            <strong>Dojo Student</strong>
+            <small>Keep training.</small>
+          </span>
         </div>
-      </aside>
+      </div>
+    </header>
 
-      <!-- About page main content will be added in a later commit -->
+    <main id="main" class="page-shell">
+      <div class="dojo-layout">
+        <aside class="dojo-sidebar" aria-label="Training stats">
+          <div class="sidebar-inner">
+            <div
+              class="sidebar-kanji sidebar-kanji-real"
+              aria-label="Discipline, focus, and growth in Japanese"
+            >
+              <span><strong>守</strong><small></small></span>
+              <span><strong>破 </strong><small></small></span>
+              <span><strong>破 </strong><small></small></span>
+            </div>
+            <p class="sidebar-mantra">
+              <span>Discipline</span><span>Focus</span><span>Growth</span>
+            </p>
 
-    </div>
-  </main>
+            <div class="sidebar-stats reference-side-stats">
+              <span class="side-stat side-stat-hot"
+                ><i>◎</i><strong>Today's Focus</strong>Pick a category</span
+              >
+              <span class="side-stat"
+                ><i>♨</i><strong>Streak</strong>0 days</span
+              >
+              <span class="side-stat"
+                ><i>○</i><strong>Sessions</strong>0 this week</span
+              >
+              <span class="side-stat"><i>◉</i><strong>Accuracy</strong>—</span>
+            </div>
+            <div class="side-art-spacer"></div>
+          </div>
+        </aside>
 
-  <footer class="footer">
-    <div class="brush-divider" role="presentation"></div>
-    <p>Built for aspiring junior web developers preparing for interviews.</p>
-  </footer>
+        <div class="content-stack">
+          <section class="card page-title-card pad">
+            <p class="kicker">Question Bank</p>
+            <h1>Pick a question, take notes, shape your answer.</h1>
+            <p class="lead">
+              Filter by level and topic, then take a question to the mock
+              interview when you're ready to speak.
+            </p>
+          </section>
 
-  <script src="../js/main.js"></script>
-</body>
+          <section class="card pad">
+            <div class="controls-bar">
+              <div>
+                <label for="searchInput" class="kicker">Search questions</label>
+                <input
+                  class="input"
+                  id="searchInput"
+                  type="search"
+                  placeholder="Search by keyword, category, or tip..."
+                />
+              </div>
+              <a class="btn btn-primary" href="mock.html">Start Random Mock</a>
+            </div>
+
+            <p class="kicker" style="margin-top: 1.25rem">Difficulty</p>
+            <div class="filter-row" id="levelFilters"></div>
+
+            <p class="kicker" style="margin-top: 1rem">Category</p>
+            <div class="filter-row" id="categoryFilters"></div>
+
+            <div class="question-grid" id="questionGrid"></div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="brush-divider" role="presentation"></div>
+      <p>Built for aspiring junior web developers preparing for interviews.</p>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/questions.js"></script>
+    <script src="../js/practice.js"></script>
+  </body>
 </html>
