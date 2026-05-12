@@ -1,61 +1,46 @@
-// Derives the active page filename from the current URL
-function getActivePage() {
-  const parts = window.location.pathname.split('/').filter(Boolean);
-  const file = parts[parts.length - 1] || 'index.html';
-  return file === '' ? 'index.html' : file;
+// Mobile nav: hooks into data attributes so the HTML can stay declarative
+const navToggle = document.querySelector("[data-nav-toggle]");
+const mainNav = document.querySelector("[data-main-nav]");
+
+function closeMobileNav() {
+  navToggle.setAttribute("aria-expanded", "false");
+  mainNav.classList.remove("is-open");
 }
 
-// Marks the matching nav link as active based on its href
-function setActiveLink() {
-  const active = getActivePage();
-  document.querySelectorAll('.nav-link').forEach(link => {
-    const href = link.getAttribute('href').replace('./', '');
-    if (href === active) link.classList.add('is-active');
-  });
-}
-
-// Opens or closes the mobile nav and syncs aria-expanded
-function toggleNav(btn, nav) {
-  const opening = !nav.classList.contains('is-open');
-  nav.classList.toggle('is-open', opening);
-  btn.setAttribute('aria-expanded', String(opening));
-}
-
-// Closes the mobile nav and resets aria-expanded
-function closeNav(btn, nav) {
-  nav.classList.remove('is-open');
-  btn.setAttribute('aria-expanded', 'false');
-}
-
-// Wires up hamburger toggle, link-click close, and keyboard handlers
-function initNav() {
-  const btn = document.querySelector('.nav-toggle');
-  const nav = document.getElementById('main-nav');
-  if (!btn || !nav) return;
-
-  btn.addEventListener('click', () => toggleNav(btn, nav));
-
-  // Close drawer when a link is tapped on mobile
-  nav.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', () => closeNav(btn, nav));
+if (navToggle && mainNav) {
+  navToggle.addEventListener("click", () => {
+    const isOpen = navToggle.getAttribute("aria-expanded") === "true";
+    navToggle.setAttribute("aria-expanded", String(!isOpen));
+    mainNav.classList.toggle("is-open", !isOpen);
   });
 
-  // Esc closes from anywhere on the page
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && nav.classList.contains('is-open')) {
-      closeNav(btn, nav);
-      btn.focus();
+  // Tapping a link inside the drawer closes it on mobile
+  mainNav.addEventListener("click", (event) => {
+    if (event.target.closest("a")) {
+      closeMobileNav();
     }
   });
 
-  // Explicit Enter / Space handling on the toggle button
-  btn.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      toggleNav(btn, nav);
+  // Resizing past the mobile breakpoint resets the drawer state
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 760) {
+      closeMobileNav();
+    }
+  });
+
+  // Esc closes the drawer from anywhere on the page
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && mainNav.classList.contains("is-open")) {
+      closeMobileNav();
+      navToggle.focus();
     }
   });
 }
 
-setActiveLink();
-initNav();
+// Highlight the nav link that matches the current page
+const currentPage = location.pathname.split("/").pop() || "index.html";
+document.querySelectorAll("[data-page]").forEach((link) => {
+  if (link.getAttribute("data-page") === currentPage) {
+    link.classList.add("is-active");
+  }
+});
