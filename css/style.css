@@ -276,6 +276,7 @@ button {
 }
 
 .sidebar-mantra {
+  display: grid;
   text-align: center;
   color: hsl(42, 76%, 74%);
   text-transform: uppercase;
@@ -1591,5 +1592,53 @@ h3 {
   .footer-quote::before,
   .footer-quote::after {
     display: none;
+  }
+}
+
+/* ── Mobile: compact the sidebar ────────────────────────────
+   On narrow screens the full sidebar dominates above main content.
+   Drop the mountains background, flip the kanji to a horizontal
+   row, and lay the four stats in a 2x2 grid so main content
+   surfaces faster.
+─────────────────────────────────────────────────────────── */
+@media (max-width: 760px) {
+  .dojo-sidebar {
+    background: linear-gradient(180deg, hsla(32, 13%, 10%, .94), hsla(32, 13%, 10%, .96));
+  }
+
+  .sidebar-inner {
+    padding: 1rem;
+  }
+
+  .sidebar-kanji,
+  .sidebar-kanji-real {
+    width: 100%;
+    min-height: 0;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .5rem;
+    margin-bottom: .9rem;
+    padding: .55rem .4rem;
+    writing-mode: initial;
+  }
+
+  .sidebar-mantra {
+  grid-template-columns: repeat(3, 1fr);
+  gap: .35rem;
+  margin-bottom: 1rem;
+}
+
+  .reference-side-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: .9rem;
+  }
+}
+
+/* ── Mobile: stack main content above the sidebar ───────────
+   On narrow screens, surface page content first; the dojo
+   stats panel slides below.
+─────────────────────────────────────────────────────────── */
+@media (max-width: 980px) {
+  .dojo-sidebar {
+    order: 2;
   }
 }
