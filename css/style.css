@@ -101,9 +101,12 @@ button {
   top: 0;
   z-index: 100;
   min-height: var(--nav-height);
-  background:
-    linear-gradient(180deg, hsla(43, 66%, 96%, .96), hsla(43, 66%, 96%, .88)),
-    url("../assets/paper-grain.svg");
+  overflow: hidden;
+  background-color: hsla(43, 66%, 96%, .92);
+  background-image: url("../assets/navbar.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
   border-bottom: 1px solid var(--border);
   backdrop-filter: blur(14px);
 }
@@ -287,7 +290,7 @@ button {
   line-height: 1.65;
   font-size: .72rem;
   font-family: system-ui, sans-serif;
-  margin-bottom: .05em;
+  margin-bottom: .55rem;
 }
 
 .sidebar-stats {
@@ -983,10 +986,11 @@ h3 {
 }
 
 .site-header {
-  background:
-    url("../assets/bamboo-corner.svg") right top / 235px 172px no-repeat,
-    linear-gradient(180deg, hsla(43, 66%, 96%, .98), hsla(43, 66%, 96%, .9)),
-    url("../assets/paper-grain.svg");
+  background-color: hsla(43, 66%, 96%, .92);
+  background-image: url("../assets/navbar.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 .nav-shell {
