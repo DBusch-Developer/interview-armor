@@ -7,9 +7,9 @@
       name="description"
       content="Interview Armor helps developers practice spoken interview answers at every level — beginner, intermediate, and advanced — with AI coaching."
     />
-    <title>Interview Armor: Dev Mode | Practice</title>
-    <link rel="icon" type="image/png" href="../assets/favicon.png?v=1" />
-    <link rel="stylesheet" href="../css/style.css" />
+    <title>Interview Armor: Dev Mode | Home</title>
+      <link rel="icon" type="image/png" href="assets/favicon.png?v=1">
+    <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -17,7 +17,7 @@
     <header class="site-header">
       <div class="nav-shell">
         <a class="brand" href="index.html" aria-label="Interview Armor — home">
-          <img src="../assets/logo-mark.svg" alt="" />
+          <img src="assets/logo-mark.svg" alt="" />
           <span class="brand-text"
             ><span>Interview</span><span>Armor</span></span
           >
@@ -140,48 +140,94 @@
         </aside>
 
         <div class="content-stack">
-          <section class="card page-title-card pad">
-            <p class="kicker">Question Bank</p>
-            <h1>Pick a question, take notes, shape your answer.</h1>
-            <p class="lead">
-              Filter by level and topic, then take a question to the mock
-              interview when you're ready to speak.
-            </p>
+          <section class="card hero-card">
+            <div class="hero-copy">
+              <p class="kicker">Dev Mode Interview Prep</p>
+              <h1>Train your answers with focus and discipline.</h1>
+              <p class="lead">
+                Train for developer interviews at every level. Speak your answer
+                out loud, get it transcribed, and use AI feedback to sharpen it
+                before the real interview.
+              </p>
+              <div class="btn-row">
+                <a class="btn btn-primary" href="mock.html">Start Practice</a>
+                <a class="btn btn-secondary" href="practice.html"
+                  >Question Bank</a
+                >
+              </div>
+            </div>
+            <div class="hero-art" aria-hidden="true"></div>
           </section>
 
           <section class="card pad">
-            <div class="controls-bar">
-              <div>
-                <label for="searchInput" class="kicker">Search questions</label>
-                <input
-                  class="input"
-                  id="searchInput"
-                  type="search"
-                  placeholder="Search by keyword, category, or tip..."
-                />
-              </div>
-              <a class="btn btn-primary" href="mock.html">Start Random Mock</a>
+            <p class="kicker">How it works</p>
+            <h2>Three steps. One stronger interview answer.</h2>
+            <div class="grid-3">
+              <article class="feature-card">
+                <div class="feature-icon">1</div>
+                <h3>Draw a question</h3>
+                <p class="muted">
+                  Choose your level and topic — HTML, CSS, JavaScript, DOM, Git,
+                  or behavioral.
+                </p>
+              </article>
+              <article class="feature-card">
+                <div class="feature-icon">2</div>
+                <h3>Speak your answer</h3>
+                <p class="muted">
+                  Record your response in the browser and play it back to hear
+                  yourself clearly.
+                </p>
+              </article>
+              <article class="feature-card">
+                <div class="feature-icon">3</div>
+                <h3>Review the dojo notes</h3>
+                <p class="muted">
+                  Transcribe your answer, send it for AI coaching, and save the
+                  feedback.
+                </p>
+              </article>
             </div>
+          </section>
 
-            <p class="kicker" style="margin-top: 1.25rem">Difficulty</p>
-            <div class="filter-row" id="levelFilters"></div>
-
-            <p class="kicker" style="margin-top: 1rem">Category</p>
-            <div class="filter-row" id="categoryFilters"></div>
-
-            <div class="question-grid" id="questionGrid"></div>
+          <section class="card pad">
+            <p class="kicker">Choose your level</p>
+            <h2>Train at the difficulty you're preparing for.</h2>
+            <div class="grid-3">
+              <article class="feature-card">
+                <span class="tag tag-sage">Beginner</span>
+                <h3>First-interview foundations</h3>
+                <p class="muted">
+                  Syntax, semantics, the DOM, Git basics, and behavioral prompts
+                  for early-career stories.
+                </p>
+              </article>
+              <article class="feature-card">
+                <span class="tag tag-bronze">Intermediate</span>
+                <h3>Trade-offs and judgment</h3>
+                <p class="muted">
+                  Async patterns, state management, architecture choices, and
+                  behavioral questions about ambiguity and collaboration.
+                </p>
+              </article>
+              <article class="feature-card">
+                <span class="tag tag-red">Advanced</span>
+                <h3>System design and leadership</h3>
+                <p class="muted">
+                  Scalability, distributed systems, technical leadership, and
+                  questions about hard calls you've owned.
+                </p>
+              </article>
+            </div>
           </section>
         </div>
       </div>
     </main>
 
     <footer class="footer">
-      <p class="footer-quote">A worthy answer is forged with preparation and delivered with purpose.<span class="seal" aria-hidden="true"></span></p>
+     <p class="footer-quote">A worthy answer is forged with preparation and delivered with purpose.<span class="seal" aria-hidden="true"></span></p>
     </footer>
 
-    <script src="../js/main.js"></script>
-    <script src="../js/config.js"></script>
-    <script src="../js/questions.js"></script>
-    <script src="../js/practice.js"></script>
+    <script src="js/main.js"></script>
   </body>
 </html>
