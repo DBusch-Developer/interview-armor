@@ -139,7 +139,72 @@
           </div>
         </aside>
 
-        <!-- About page main content will be added in a later commit -->
+        <div class="content-stack">
+          <section class="card page-title-card pad">
+            <p class="kicker">Saved Feedback</p>
+            <h1>Revisit, refine, and run it back.</h1>
+            <p class="lead">
+              Every saved session lives here. Filter by topic or readiness,
+              re-read your transcript, and jump back into the mock when
+              you're ready to take another swing.
+            </p>
+          </section>
+
+          <section class="card pad" id="savedControls" hidden>
+            <div class="controls-bar">
+              <div>
+                <label for="savedSearchInput" class="kicker">Search saved</label>
+                <input
+                  class="input"
+                  id="savedSearchInput"
+                  type="search"
+                  placeholder="Search by question, transcript, or keyword..."
+                  autocomplete="off"
+                />
+              </div>
+              <p class="muted" id="savedCount" aria-live="polite"></p>
+            </div>
+
+            <p class="kicker" style="margin-top: 1.25rem">Category</p>
+            <div class="filter-row" id="savedCategoryFilters"></div>
+
+            <p class="kicker" style="margin-top: 1rem">Readiness</p>
+            <div class="filter-row" id="savedConfidenceFilters">
+              <button class="filter-btn is-active" type="button" data-confidence="All">All</button>
+              <button class="filter-btn" type="button" data-confidence="Needs Work">Needs Work</button>
+              <button class="filter-btn" type="button" data-confidence="Almost Ready">Almost Ready</button>
+              <button class="filter-btn" type="button" data-confidence="Strong Answer">Strong Answer</button>
+            </div>
+          </section>
+
+          <div id="savedList" class="saved-list"></div>
+
+          <section class="card pad empty-state" id="savedEmpty" hidden>
+            <p class="kicker">Empty dojo</p>
+            <h2>No sessions saved yet.</h2>
+            <p class="lead">
+              Head to the mock interview, record an answer, run it through
+              AI feedback, and hit <strong>Save Transcript + Feedback</strong>.
+              Your past sessions will show up here.
+            </p>
+            <div class="btn-row" style="justify-content: center">
+              <a class="btn btn-primary" href="mock.html">Start a Mock Interview</a>
+              <a class="btn btn-secondary" href="practice.html">Browse Questions</a>
+            </div>
+          </section>
+
+          <section class="card pad empty-state" id="savedNoResults" hidden>
+            <p class="kicker">Nothing matches</p>
+            <h2>No saved sessions match those filters.</h2>
+            <p class="lead">
+              Try clearing the search, or pick <strong>All</strong> for category
+              and readiness.
+            </p>
+            <div class="btn-row" style="justify-content: center">
+              <button class="btn btn-secondary" type="button" id="clearFiltersBtn">Clear filters</button>
+            </div>
+          </section>
+        </div>
       </div>
     </main>
 
@@ -149,5 +214,6 @@
     </footer>
 
     <script src="../js/main.js"></script>
+    <script src="../js/saved.js"></script>
   </body>
 </html>

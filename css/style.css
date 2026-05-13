@@ -784,6 +784,12 @@ h3 {
   padding: 2.5rem 1rem;
 }
 
+.empty-state .lead {
+  margin-left: auto;
+  margin-right: auto;
+  text-wrap: balance;
+}
+
 .footer {
   width: min(var(--max), calc(100% - 2rem));
   margin: 0 auto;
@@ -1737,4 +1743,95 @@ h3 {
   font-size: .72rem;
   line-height: 1.4;
   max-width: 14ch;
+}
+/* ────────────────────────────────────────────────────────────
+   Saved sessions page
+   ──────────────────────────────────────────────────────────── */
+
+.saved-list {
+  display: grid;
+  gap: 1.05rem;
+}
+
+.saved-card {
+  gap: .9rem;
+}
+
+.saved-card .saved-card-header {
+  flex-wrap: wrap;
+}
+
+.saved-date {
+  margin: 0;
+  font-size: .82rem;
+}
+
+.saved-section {
+  display: grid;
+  gap: .35rem;
+}
+
+.saved-question {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.saved-transcript {
+  margin: 0;
+  padding: .8rem 1rem;
+  border-left: 3px solid var(--bronze);
+  background: hsla(43, 66%, 96%, .5);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--ink-soft);
+  font-style: italic;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.feedback-grid {
+  display: grid;
+  gap: .55rem;
+}
+
+.saved-actions {
+  margin-top: .25rem;
+}
+
+/* Confidence pill on the card header — matches belt colors from the
+   mock page so the visual language stays consistent. */
+.confidence-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .35rem .7rem;
+  border-radius: 999px;
+  font-family: system-ui, sans-serif;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  color: var(--ink-soft);
+  background: hsla(43, 66%, 96%, .66);
+  white-space: nowrap;
+}
+
+.confidence-pill-gray {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--gray-belt) 50%, transparent);
+  background: color-mix(in srgb, var(--gray-belt) 14%, hsla(43, 66%, 96%, .66));
+}
+
+.confidence-pill-bronze {
+  color: var(--bronze);
+  border-color: color-mix(in srgb, var(--bronze) 50%, transparent);
+  background: color-mix(in srgb, var(--bronze) 12%, hsla(43, 66%, 96%, .66));
+}
+
+.confidence-pill-sage {
+  color: var(--sage);
+  border-color: color-mix(in srgb, var(--sage) 50%, transparent);
+  background: color-mix(in srgb, var(--sage) 12%, hsla(43, 66%, 96%, .66));
 }
