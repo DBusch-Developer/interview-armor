@@ -287,13 +287,13 @@ button {
   line-height: 1.65;
   font-size: .72rem;
   font-family: system-ui, sans-serif;
-  margin-bottom: 1.4rem;
+  margin-bottom: .05em;
 }
 
 .sidebar-stats {
   display: grid;
   gap: .85rem;
-  margin-top: 1.25rem;
+  margin-top: .55rem;
   padding-top: 1.25rem;
   border-top: 1px solid hsla(42, 58%, 93%, .18);
   font-family: system-ui, sans-serif;
