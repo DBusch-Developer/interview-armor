@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 18" preserveAspectRatio="none">
+  <defs>
+    <filter id="rough" x="-3%" y="-30%" width="106%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.0 0.4" numOctaves="2" seed="3" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.4"/>
+    </filter>
+
+    <!-- Horizontal opacity taper: wispy on outer end, fully inked through the middle -->
+    <linearGradient id="bodyTaper" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#2a2924" stop-opacity="0"/>
+      <stop offset="6%"   stop-color="#2a2924" stop-opacity="0.2"/>
+      <stop offset="20%"  stop-color="#2a2924" stop-opacity="0.6"/>
+      <stop offset="40%"  stop-color="#2a2924" stop-opacity="0.9"/>
+      <stop offset="80%"  stop-color="#2a2924" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#2a2924" stop-opacity="1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ───── MAIN INK BODY ─────
+       The shape is now more parallelogram-like through the middle:
+       wispy thin on far left, body opens up by x≈40 to a thickness of
+       ~2.6 units, holds that thickness through to x≈265, then narrows
+       slightly before merging into the arrow tip at x≈278. -->
+  <path d="M 4 9.0
+           C 14 8.85, 26 8.5, 40 7.9
+           L 80 7.7
+           L 200 7.7
+           L 260 7.75
+           L 275 7.85
+           L 278 7.85
+           L 278 10.15
+           L 275 10.15
+           L 260 10.25
+           L 200 10.3
+           L 80 10.3
+           L 40 10.1
+           C 26 9.5, 14 9.15, 4 9.0
+           Z"
+        fill="url(#bodyTaper)" filter="url(#rough)"/>
+
+  <!-- Darker inner band for the heavily-inked middle (where the brush
+       pressed hardest) — emphasizes the saturated quality of real ink. -->
+  <path d="M 75 8.1
+           L 270 8.1
+           L 274 8.2
+           L 274 9.8
+           L 270 9.9
+           L 75 9.9
+           Z"
+        fill="#181612" opacity="0.55" filter="url(#rough)"/>
+
+  <!-- ───── BRISTLE STRIATIONS (light grooves carving the bristle texture) ───── -->
+  <g stroke="#f1e6cb" fill="none" stroke-linecap="round">
+    <!-- Major striations: clearly visible parallel grooves -->
+    <line x1="48"  y1="8.5"  x2="276" y2="8.5"  stroke-width="0.35" opacity="0.75"/>
+    <line x1="42"  y1="9.0"  x2="276" y2="9.0"  stroke-width="0.3"  opacity="0.65"/>
+    <line x1="48"  y1="9.5"  x2="276" y2="9.5"  stroke-width="0.35" opacity="0.75"/>
+    <!-- Lighter/subtler striations -->
+    <line x1="80"  y1="8.15" x2="276" y2="8.15" stroke-width="0.22" opacity="0.55"/>
+    <line x1="90"  y1="9.85" x2="276" y2="9.85" stroke-width="0.22" opacity="0.55"/>
+    <!-- Faint hair grooves -->
+    <line x1="120" y1="8.3"  x2="270" y2="8.3"  stroke-width="0.18" opacity="0.4"/>
+    <line x1="130" y1="9.7"  x2="270" y2="9.7"  stroke-width="0.18" opacity="0.4"/>
+  </g>
+
+  <!-- ───── DRY-BRUSH GAPS along the body length ───── -->
+  <g fill="#f1e6cb" filter="url(#rough)">
+    <ellipse cx="65"  cy="9.0" rx="5.5" ry="0.45" opacity="0.5"/>
+    <ellipse cx="98"  cy="9.0" rx="4.5" ry="0.4"  opacity="0.4"/>
+    <ellipse cx="135" cy="9.0" rx="4"   ry="0.35" opacity="0.35"/>
+    <ellipse cx="175" cy="9.0" rx="3.5" ry="0.3"  opacity="0.3"/>
+    <ellipse cx="215" cy="9.0" rx="3"   ry="0.28" opacity="0.25"/>
+    <ellipse cx="248" cy="9.0" rx="2.5" ry="0.25" opacity="0.22"/>
+  </g>
+
+  <!-- ───── OUTER (left) WISPY FRAGMENTS ───── -->
+  <g fill="#2a2924">
+    <rect x="0"  y="8.85" width="3"   height="0.4" opacity="0.55"/>
+    <rect x="4"  y="8.6"  width="2.5" height="0.3" opacity="0.45"/>
+    <rect x="2"  y="9.35" width="1.8" height="0.3" opacity="0.4"/>
+    <circle cx="7"  cy="9.0" r="0.3"  opacity="0.5"/>
+    <circle cx="10" cy="8.75" r="0.22" opacity="0.4"/>
+    <circle cx="14" cy="9.2" r="0.22" opacity="0.4"/>
+    <circle cx="18" cy="8.9" r="0.2"  opacity="0.35"/>
+  </g>
+
+  <!-- ───── INK FLECKS above + below the body for organic feel ───── -->
+  <g fill="#2a2924">
+    <circle cx="110" cy="7.25" r="0.32" opacity="0.55"/>
+    <circle cx="155" cy="7.1" r="0.38"  opacity="0.6"/>
+    <circle cx="200" cy="7.05" r="0.4"  opacity="0.6"/>
+    <circle cx="245" cy="7.05" r="0.35" opacity="0.55"/>
+    <circle cx="125" cy="10.95" r="0.35" opacity="0.55"/>
+    <circle cx="175" cy="11.1" r="0.4"  opacity="0.6"/>
+    <circle cx="220" cy="11.15" r="0.4" opacity="0.6"/>
+    <circle cx="255" cy="11.1" r="0.32" opacity="0.55"/>
+  </g>
+
+  <!-- ───── ARROW TIP at inner (right) end ─────
+       Chunky, short, integrated with the body's thickness. -->
+  <path d="M 277 6.4 L 295 9.0 L 277 11.6 L 280 9.0 Z"
+        fill="#1a1814" filter="url(#rough)"/>
+</svg>

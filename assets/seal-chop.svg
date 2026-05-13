@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 34">
+  <!--
+    Chinese-style seal/chop (印章) in the outlined 白文 style: red
+    border and red abstract seal-script-shaped glyphs on a transparent
+    cream-paper background. Rectangular (taller than wide), aged edges.
+    Glyphs are abstract designs evoking seal-script — NOT real characters.
+  -->
+
+  <!-- ─── Outer border, thick & slightly weathered ─── -->
+  <rect x="1.1" y="1.1" width="25.8" height="31.8"
+        fill="none" stroke="#8b1d20" stroke-width="1.5"
+        stroke-linejoin="miter" rx="0.6"/>
+
+  <!-- ─── Inner border line for depth ─── -->
+  <rect x="2.6" y="2.6" width="22.8" height="28.8"
+        fill="none" stroke="#8b1d20" stroke-width="0.32"
+        opacity="0.55" rx="0.3"/>
+
+  <!--
+    Four abstract glyphs in a 2x2 grid. Each combines verticals,
+    horizontals, hooks, and corners to evoke seal-script character
+    aesthetics without forming readable characters.
+  -->
+  <g stroke="#8b1d20" fill="none"
+     stroke-linecap="square" stroke-linejoin="miter">
+
+    <!-- ━━━ TL glyph: pyramid-stack motif with central anchor ━━━ -->
+    <g stroke-width="1.1">
+      <path d="M 4.4 5.3 L 11.6 5.3"/>
+      <path d="M 5.4 5.3 L 5.4 14.0"/>
+      <path d="M 10.6 5.3 L 10.6 14.0"/>
+      <path d="M 4.4 9.0 L 11.6 9.0"/>
+      <path d="M 4.4 11.8 L 11.6 11.8"/>
+      <path d="M 4.4 14.0 L 11.6 14.0"/>
+      <path d="M 8.0 9.0 L 8.0 14.0"/>
+    </g>
+    <!-- small hook detail -->
+    <path d="M 6.6 6.8 L 9.4 6.8" stroke-width="0.8"/>
+
+    <!-- ━━━ TR glyph: framed rectangle with diagonal accent ━━━ -->
+    <g stroke-width="1.1">
+      <path d="M 16.4 5.0 L 23.6 5.0"/>
+      <path d="M 16.4 14.0 L 23.6 14.0"/>
+      <path d="M 16.4 5.0 L 16.4 14.0"/>
+      <path d="M 23.6 5.0 L 23.6 14.0"/>
+      <path d="M 16.4 9.5 L 23.6 9.5"/>
+    </g>
+    <!-- internal diagonal mark (chop carving variation) -->
+    <path d="M 18.0 6.5 L 22.0 6.5" stroke-width="0.85"/>
+    <path d="M 20.0 6.5 L 20.0 9.5" stroke-width="0.85"/>
+    <path d="M 18.0 11.0 L 22.0 11.0" stroke-width="0.85"/>
+    <path d="M 18.0 12.5 L 22.0 12.5" stroke-width="0.85"/>
+
+    <!-- ━━━ BL glyph: nested rectangles with a central vertical (well/口 motif) ━━━ -->
+    <g stroke-width="1.1">
+      <path d="M 4.4 19.0 L 11.6 19.0"/>
+      <path d="M 4.4 28.8 L 11.6 28.8"/>
+      <path d="M 4.4 19.0 L 4.4 28.8"/>
+      <path d="M 11.6 19.0 L 11.6 28.8"/>
+    </g>
+    <path d="M 6.1 21.0 L 9.9 21.0" stroke-width="0.85"/>
+    <path d="M 6.1 24.0 L 9.9 24.0" stroke-width="0.85"/>
+    <path d="M 6.1 26.8 L 9.9 26.8" stroke-width="0.85"/>
+    <path d="M 8.0 21.0 L 8.0 26.8" stroke-width="0.85"/>
+
+    <!-- ━━━ BR glyph: stacked horizontals + double-vertical anchor (山/王 motif) ━━━ -->
+    <g stroke-width="1.1">
+      <path d="M 16.4 19.0 L 23.6 19.0"/>
+      <path d="M 16.4 22.0 L 23.6 22.0"/>
+      <path d="M 16.4 25.8 L 23.6 25.8"/>
+      <path d="M 16.4 28.8 L 23.6 28.8"/>
+      <path d="M 18.4 19.0 L 18.4 28.8"/>
+      <path d="M 21.6 19.0 L 21.6 28.8"/>
+    </g>
+    <!-- small accent dot -->
+    <circle cx="20.0" cy="23.9" r="0.5" fill="#8b1d20" stroke="none"/>
+  </g>
+
+  <!-- ─── Weathered breaks: small cream gaps on the borders ─── -->
+  <g stroke="#f1e6cb" stroke-linecap="butt">
+    <line x1="1.1"  y1="9.5"  x2="1.1"  y2="11.0" stroke-width="0.9"/>
+    <line x1="26.9" y1="22.0" x2="26.9" y2="23.6" stroke-width="0.9"/>
+    <line x1="12.5" y1="1.1"  x2="14.2" y2="1.1"  stroke-width="1.4"/>
+    <line x1="18.5" y1="32.9" x2="20.0" y2="32.9" stroke-width="1.2"/>
+    <line x1="2.6"  y1="16.5" x2="2.6"  y2="17.0" stroke-width="0.32"/>
+    <line x1="25.4" y1="15.2" x2="25.4" y2="15.7" stroke-width="0.32"/>
+  </g>
+
+  <!-- subtle ink-density flecks for aged stamp -->
+  <g fill="#8b1d20" opacity="0.65">
+    <circle cx="3.5"  cy="16.8" r="0.18"/>
+    <circle cx="24.5" cy="16.5" r="0.16"/>
+    <circle cx="13.8" cy="17.0" r="0.14"/>
+  </g>
+</svg>

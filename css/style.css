@@ -1497,20 +1497,38 @@ h3 {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: .95rem;
+  gap: .85rem;
   margin: 1rem 0 0;
   color: var(--ink-soft);
   font-size: 1rem;
   font-style: italic;
+  /* When this element is a child of the .dojo-layout grid, span both
+     columns so the brush strokes have full horizontal room. */
+  grid-column: 1 / -1;
 }
 
+/* Left + right brush strokes, with the right one mirrored so the
+   arrow tip points back toward the text. */
 .footer-quote::before,
 .footer-quote::after {
   content: "";
-  width: min(250px, 24vw);
-  height: 20px;
-  background: url("../assets/brush-divider.svg") center / 100% 100% no-repeat;
-  opacity: .7;
+  width: min(260px, 26vw);
+  height: 22px;
+  background: url("../assets/brush-stroke-arrow.svg") center / 100% 100% no-repeat;
+  flex-shrink: 0;
+}
+
+.footer-quote::after {
+  transform: scaleX(-1);
+}
+
+/* Small Chinese-style seal/chop after the text, before the right brush. */
+.footer-quote .seal {
+  display: inline-block;
+  width: 1.3em;
+  height: 1.65em;
+  background: url("../assets/seal-chop.svg") center / contain no-repeat;
+  flex-shrink: 0;
 }
 
 /* Keep the other sprint pages cohesive with the same visual system */
