@@ -232,7 +232,7 @@ button {
 .page-shell {
   width: min(var(--max), calc(100% - 2rem));
   margin: 0 auto;
-  padding: 2rem 0 4rem;
+  padding: 2rem 0 1rem;
 }
 
 .dojo-layout {
@@ -794,7 +794,7 @@ h3 {
 .footer {
   width: min(var(--max), calc(100% - 2rem));
   margin: 0 auto;
-  padding: 2rem 0 3rem;
+  padding: .5rem 0 2rem;
   color: var(--muted);
   text-align: center;
 }
@@ -1529,6 +1529,45 @@ h3 {
   height: 1.65em;
   background: url("../assets/seal-chop.svg") center / contain no-repeat;
   flex-shrink: 0;
+}
+
+/* ── About page ────────────────────────────────────────────
+   Each section card uses the standard .card + .pad. The
+   .about-card just adds a slim crimson left rail for visual
+   rhythm down the stack, echoing the .feedback-item style
+   without being as heavy. */
+.about-card {
+  border-left: 4px solid var(--crimson);
+}
+
+.about-card h2 {
+  margin-top: .35rem;
+  margin-bottom: .85rem;
+  font-size: 1.45rem;
+}
+
+.about-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: .55rem;
+}
+
+.about-list li {
+  position: relative;
+  padding-left: 1.4rem;
+  color: var(--ink-soft);
+}
+
+.about-list li::before {
+  content: "◎";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--crimson);
+  font-size: .9em;
+  line-height: 1.6;
 }
 
 /* Keep the other sprint pages cohesive with the same visual system */
