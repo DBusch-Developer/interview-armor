@@ -248,9 +248,11 @@ button {
   min-height: calc(100vh - var(--nav-height) - 2rem);
   border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
   overflow: hidden;
-  background:
-    linear-gradient(180deg, hsla(32, 13%, 10%, .94), hsla(32, 13%, 10%, .96)),
-    url("../assets/sidebar-mountains.svg") bottom center / cover no-repeat;
+  background-color: hsl(32, 13%, 8%);
+  background-image: url("../assets/sidebar.png");
+  background-position: center bottom;
+  background-size: cover;
+  background-repeat: no-repeat;
   color: var(--paper);
   box-shadow: var(--shadow);
 }
@@ -568,6 +570,41 @@ h3 {
   position: relative;
   z-index: 1;
 }
+
+/* ── Per-page hero images on the page-title-card ──────────────
+   Each page tags its title card with a hero-{name} class. The
+   card adopts the image's 1916x821 aspect ratio so the image
+   fills the full width with no cropping. The image's empty
+   paper-textured left side sits behind the title text, and the
+   artwork's natural right-side composition shows on the right.
+─────────────────────────────────────────────────────────── */
+.page-title-card.hero-home,
+.page-title-card.hero-practice,
+.page-title-card.hero-mock,
+.page-title-card.hero-saved,
+.page-title-card.hero-about {
+  aspect-ratio: 1916 / 821;
+}
+
+.page-title-card.hero-home::after,
+.page-title-card.hero-practice::after,
+.page-title-card.hero-mock::after,
+.page-title-card.hero-saved::after,
+.page-title-card.hero-about::after {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.page-title-card.hero-home::after     { background-image: url("../assets/hero-home.png"); }
+.page-title-card.hero-practice::after { background-image: url("../assets/hero-practice.png"); }
+.page-title-card.hero-mock::after     { background-image: url("../assets/hero-mock.png"); }
+.page-title-card.hero-saved::after    { background-image: url("../assets/hero-saved.png"); }
+.page-title-card.hero-about::after    { background-image: url("../assets/hero-about.png"); }
 
 .controls-bar {
   display: grid;
@@ -1800,27 +1837,25 @@ h3 {
   }
 
   .footer-quote {
-    display: block;
+    flex-direction: column;
+    gap: .5rem;
     text-align: center;
   }
 
   .footer-quote::before,
   .footer-quote::after {
-    display: none;
+    width: min(280px, 60vw);
   }
 }
 
 /* ── Mobile: compact the sidebar ────────────────────────────
    On narrow screens the full sidebar dominates above main content.
-   Drop the mountains background, flip the kanji to a horizontal
-   row, and lay the four stats in a 2x2 grid so main content
-   surfaces faster.
+   Flip the kanji to a horizontal row and lay the four stats in a
+   2x2 grid so main content surfaces faster. The background image
+   continues to apply — cover + bottom positioning naturally shows
+   just the artwork strip at the bottom of the now-wide sidebar.
 ─────────────────────────────────────────────────────────── */
 @media (max-width: 760px) {
-  .dojo-sidebar {
-    background: linear-gradient(180deg, hsla(32, 13%, 10%, .94), hsla(32, 13%, 10%, .96));
-  }
-
   .sidebar-inner {
     padding: 1rem;
   }
