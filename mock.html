@@ -139,173 +139,170 @@
           </div>
         </aside>
 
-        <div class="mock-main-grid">
-  <div class="mock-left-stack">
+        <div class="content-stack">
 
-    <section class="card hero-card reference-hero-card">
-      <div class="hero-copy">
-        <h1>Train your answers with focus and discipline.</h1>
-        <div class="red-brush" aria-hidden="true"></div>
-        <p class="lead">Speak your answer, get it transcribed, and use AI coaching to sharpen it before the real interview.</p>
-        <div class="btn-row">
-          <button class="btn btn-primary" id="heroStartBtn" type="button">
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 14a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v4a4 4 0 0 0 4 4Z"/><path d="M19 10a7 7 0 0 1-14 0M12 17v4M8 21h8"/></svg>
-            Start Practice
-          </button>
-          <a class="btn btn-secondary" href="practice.html">
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 1 4 17.5z"/><path d="M4 17.5A2.5 2.5 0 0 1 6.5 15H20"/></svg>
-            Question Bank
-          </a>
+          <!-- Zone 1: Page title -->
+          <section class="card page-title-card pad">
+            <p class="kicker">Mock Interview</p>
+            <h1>Train your answers with focus and discipline.</h1>
+            <p class="lead">
+              Pick a question, speak your answer out loud, and let the dojo
+              coach you on what you actually said.
+            </p>
+          </section>
+
+          <!-- Zone 2: Question + inline controls -->
+          <section class="card pad question-bar-card">
+            <div class="question-bar">
+              <div class="question-bar-text">
+                <p class="kicker">Current Question</p>
+                <h2 id="questionText">Loading question...</h2>
+                <p class="question-tip" id="questionTip"></p>
+                <div class="tag-row">
+                  <span class="tag" id="questionCategory"></span>
+                  <span class="tag" id="questionLevel"></span>
+                </div>
+              </div>
+              <div class="question-bar-controls">
+                <p class="kicker">Question Controls</p>
+                <label class="muted" for="levelSelect">Difficulty</label>
+                <select class="select" id="levelSelect"></select>
+                <label class="muted" for="categorySelect">Category</label>
+                <select class="select" id="categorySelect"></select>
+                <button class="btn btn-secondary btn-small" id="newQuestionBtn" type="button">New Random Question</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Zone 3: Notes + Record -->
+          <div class="mock-row mock-row-record">
+            <section class="card pad practice-notes-card hidden" id="practiceNotesCard">
+              <div class="section-heading">
+                <span class="flower-icon" aria-hidden="true">✿</span>
+                <p class="kicker">Your Prep Notes</p>
+              </div>
+              <div id="practiceNotesContent"></div>
+            </section>
+
+            <article class="card question-record-card record-card">
+              <div class="recording-band">
+                <div class="recording-status-block">
+                  <p class="status-line"><span class="status-dot" id="statusDot"></span><span id="recordingStatus">Ready to record.</span></p>
+                  <p class="recording-timer" id="recordTimer">00:00</p>
+                </div>
+
+                <div class="mic-wave-wrap">
+                  <div class="wave wave-left" aria-hidden="true"></div>
+                  <button class="recording-orb" id="recordBtn" type="button" aria-label="Start recording">🎙</button>
+                  <div class="wave wave-right" aria-hidden="true"></div>
+                </div>
+
+                <div class="recording-actions">
+                  <button class="btn btn-secondary btn-small" id="stopBtn" type="button" disabled>■ End Recording</button>
+                  <button class="btn btn-ghost btn-small" id="clearBtn" type="button">Clear</button>
+                </div>
+              </div>
+
+              <div class="transcript-panel">
+                <p class="kicker">Live Transcript</p>
+                <textarea class="textarea" id="transcriptText" placeholder="Your transcript will appear here after transcription. You can also paste or edit text here before asking for feedback."></textarea>
+                <audio class="audio-player hidden" id="audioPlayer" controls></audio>
+
+                <div class="transcript-meta">
+                  <span class="transcribing-dot">●</span>
+                  <span id="transcriptStatusText">Waiting for your answer...</span>
+                  <span id="wordCount">0 words</span>
+                </div>
+
+                <div class="btn-row">
+                  <button class="btn btn-primary btn-small" id="transcribeBtn" type="button" disabled>Transcribe My Answer</button>
+                  <button class="btn btn-secondary btn-small" id="feedbackBtn" type="button">Send Transcript for AI Feedback</button>
+                </div>
+                <p class="muted api-status" id="apiStatus"></p>
+              </div>
+            </article>
+          </div>
+
+          <!-- Zone 4: Feedback + Readiness -->
+          <div class="mock-row mock-row-review">
+            <section class="card coach-card">
+              <div class="section-heading">
+                <span class="flower-icon" aria-hidden="true">✿</span>
+                <p class="kicker">AI Coach — Dojo Notes</p>
+              </div>
+
+              <div class="score-row score-row-reference" aria-label="Feedback scores">
+                <div class="score-line">
+                  <span class="coach-icon" aria-hidden="true">◎</span>
+                  <span><strong>Clarity</strong><small>Your answer is clear and easy to follow.</small></span>
+                  <span class="score-number score-green" id="clarityScore">—</span>
+                  <div class="meter hidden-meter"><span id="clarityMeter" style="width:0%"></span></div>
+                </div>
+                <div class="score-line">
+                  <span class="coach-icon" aria-hidden="true">☷</span>
+                  <span><strong>Structure</strong><small>Consider adding more detail to key decisions.</small></span>
+                  <span class="score-number" id="structureScore">—</span>
+                  <div class="meter hidden-meter"><span id="structureMeter" style="width:0%"></span></div>
+                </div>
+                <div class="score-line">
+                  <span class="coach-icon" aria-hidden="true">兜</span>
+                  <span><strong>Confidence</strong><small>Project impact with conviction.</small></span>
+                  <span class="score-number" id="confidenceScore">—</span>
+                  <div class="meter hidden-meter"><span id="confidenceMeter" style="width:0%"></span></div>
+                </div>
+              </div>
+
+              <div class="inner-divider"></div>
+
+              <p class="kicker">Suggested Improvement</p>
+              <div class="feedback-list feedback-list-reference">
+                <div class="feedback-item"><strong>Strength</strong><span id="strengthText">Feedback will appear here.</span></div>
+                <div class="feedback-item"><strong>Improve</strong><span id="improveText">Record or paste a transcript first.</span></div>
+                <div class="feedback-item"><strong>Stronger answer idea</strong><span id="strongerAnswerText">You'll get a clearer example direction after feedback runs.</span></div>
+                <div class="feedback-item"><strong>Confidence tip</strong><span id="confidenceTipText">You'll get one delivery tip.</span></div>
+              </div>
+
+              <p class="coach-quote">"The best warriors are not those who never fail, but those who learn and improve."</p>
+            </section>
+
+            <section class="card readiness-card">
+              <div class="section-heading">
+                <span class="flower-icon" aria-hidden="true">☊</span>
+                <p class="kicker">Readiness Level</p>
+              </div>
+
+              <div class="belt-grid">
+                <div class="belt-card" data-confidence="Needs Work">
+                  <img class="belt-img" src="assets/belt-gray.png" alt="" aria-hidden="true">
+                  <strong>Needs Work</strong>
+                  <small>Keep training the fundamentals.</small>
+                </div>
+                <div class="belt-card" data-confidence="Almost Ready">
+                  <img class="belt-img" src="assets/belt-gold.png" alt="" aria-hidden="true">
+                  <strong>Almost Ready</strong>
+                  <small>You're getting there. Refine and level up.</small>
+                </div>
+                <div class="belt-card" data-confidence="Strong Answer">
+                  <img class="belt-img" src="assets/belt-green.png" alt="" aria-hidden="true">
+                  <strong>Strong Answer</strong>
+                  <small>Well done. You're interview ready.</small>
+                </div>
+              </div>
+
+              <div class="progress-row" aria-hidden="true">
+                <span class="progress-marker"></span>
+                <div class="brush-progress"></div>
+              </div>
+              <p class="overall-readiness"><strong id="overallReadiness">—</strong><span>Overall Readiness</span></p>
+
+              <div class="btn-row">
+                <button class="btn btn-primary btn-small" id="saveBtn" type="button">Save Transcript + Feedback</button>
+                <a class="btn btn-secondary btn-small" href="saved.html">Review Saved</a>
+              </div>
+            </section>
+          </div>
+
         </div>
-      </div>
-      <div class="hero-art" aria-hidden="true"></div>
-    </section>
-
-    <article class="card question-record-card">
-      <div class="question-record-top">
-        <p class="kicker">Current Question</p>
-        <h2 id="questionText">Loading question...</h2>
-        <p class="question-tip" id="questionTip"></p>
-        <div class="tag-row">
-          <span class="tag" id="questionCategory"></span>
-          <span class="tag" id="questionLevel"></span>
-        </div>
-      </div>
-
-      <div class="recording-band">
-        <div class="recording-status-block">
-          <p class="status-line"><span class="status-dot" id="statusDot"></span><span id="recordingStatus">Ready to record.</span></p>
-          <p class="recording-timer" id="recordTimer">00:00</p>
-        </div>
-
-        <div class="mic-wave-wrap">
-          <div class="wave wave-left" aria-hidden="true"></div>
-          <button class="recording-orb" id="recordBtn" type="button" aria-label="Start recording">🎙</button>
-          <div class="wave wave-right" aria-hidden="true"></div>
-        </div>
-
-        <div class="recording-actions">
-          <button class="btn btn-secondary btn-small" id="stopBtn" type="button" disabled>■ End Recording</button>
-          <button class="btn btn-ghost btn-small" id="clearBtn" type="button">Clear</button>
-        </div>
-      </div>
-
-      <div class="transcript-panel">
-        <p class="kicker">Live Transcript</p>
-        <textarea class="textarea" id="transcriptText" placeholder="Your transcript will appear here after transcription. You can also paste or edit text here before asking for feedback."></textarea>
-        <audio class="audio-player hidden" id="audioPlayer" controls></audio>
-
-        <div class="transcript-meta">
-          <span class="transcribing-dot">●</span>
-          <span id="transcriptStatusText">Waiting for your answer...</span>
-          <span id="wordCount">0 words</span>
-        </div>
-
-        <div class="btn-row">
-          <button class="btn btn-primary btn-small" id="transcribeBtn" type="button" disabled>Transcribe My Answer</button>
-          <button class="btn btn-secondary btn-small" id="feedbackBtn" type="button">Send Transcript for AI Feedback</button>
-        </div>
-        <p class="muted api-status" id="apiStatus"></p>
-      </div>
-    </article>
-  </div>
-
-  <aside class="mock-right-stack">
-
-    <section class="card pad hidden" id="practiceNotesCard">
-      <div class="section-heading">
-        <span class="flower-icon" aria-hidden="true">✿</span>
-        <p class="kicker">Your Prep Notes</p>
-      </div>
-      <div id="practiceNotesContent"></div>
-    </section>
-
-    <section class="card coach-card">
-      <div class="section-heading">
-        <span class="flower-icon" aria-hidden="true">✿</span>
-        <p class="kicker">AI Coach — Dojo Notes</p>
-      </div>
-
-      <div class="score-row score-row-reference" aria-label="Feedback scores">
-        <div class="score-line">
-          <span class="coach-icon" aria-hidden="true">◎</span>
-          <span><strong>Clarity</strong><small>Your answer is clear and easy to follow.</small></span>
-          <span class="score-number score-green" id="clarityScore">—</span>
-          <div class="meter hidden-meter"><span id="clarityMeter" style="width:0%"></span></div>
-        </div>
-        <div class="score-line">
-          <span class="coach-icon" aria-hidden="true">☷</span>
-          <span><strong>Structure</strong><small>Consider adding more detail to key decisions.</small></span>
-          <span class="score-number" id="structureScore">—</span>
-          <div class="meter hidden-meter"><span id="structureMeter" style="width:0%"></span></div>
-        </div>
-        <div class="score-line">
-          <span class="coach-icon" aria-hidden="true">兜</span>
-          <span><strong>Confidence</strong><small>Project impact with conviction.</small></span>
-          <span class="score-number" id="confidenceScore">—</span>
-          <div class="meter hidden-meter"><span id="confidenceMeter" style="width:0%"></span></div>
-        </div>
-      </div>
-
-      <div class="inner-divider"></div>
-
-      <p class="kicker">Suggested Improvement</p>
-      <div class="feedback-list feedback-list-reference">
-        <div class="feedback-item"><strong>Strength</strong><span id="strengthText">Feedback will appear here.</span></div>
-        <div class="feedback-item"><strong>Improve</strong><span id="improveText">Record or paste a transcript first.</span></div>
-        <div class="feedback-item"><strong>Stronger answer idea</strong><span id="strongerAnswerText">You'll get a clearer example direction after feedback runs.</span></div>
-        <div class="feedback-item"><strong>Confidence tip</strong><span id="confidenceTipText">You'll get one delivery tip.</span></div>
-      </div>
-
-      <p class="coach-quote">"The best warriors are not those who never fail, but those who learn and improve."</p>
-    </section>
-
-    <section class="card readiness-card">
-      <div class="section-heading">
-        <span class="flower-icon" aria-hidden="true">☊</span>
-        <p class="kicker">Readiness Level</p>
-      </div>
-
-      <div class="belt-grid">
-        <button class="belt-card confidence-option" type="button" data-confidence="Needs Work">
-          <img class="belt-img" src="assets/belt-gray.png" alt="" aria-hidden="true">
-          <strong>Needs Work</strong>
-          <small>Keep training the fundamentals.</small>
-        </button>
-        <button class="belt-card confidence-option" type="button" data-confidence="Almost Ready">
-          <img class="belt-img" src="assets/belt-gold.png" alt="" aria-hidden="true">
-          <strong>Almost Ready</strong>
-          <small>You're getting there. Refine and level up.</small>
-        </button>
-        <button class="belt-card confidence-option" type="button" data-confidence="Strong Answer">
-          <img class="belt-img" src="assets/belt-green.png" alt="" aria-hidden="true">
-          <strong>Strong Answer</strong>
-          <small>Well done. You're interview ready.</small>
-        </button>
-      </div>
-
-      <div class="progress-row" aria-hidden="true">
-        <span class="progress-marker"></span>
-        <div class="brush-progress"></div>
-      </div>
-      <p class="overall-readiness"><strong id="overallReadiness">—</strong><span>Overall Readiness</span></p>
-
-      <div class="btn-row">
-        <button class="btn btn-primary btn-small" id="saveBtn" type="button">Save Transcript + Feedback</button>
-        <a class="btn btn-secondary btn-small" href="saved.html">Review Saved</a>
-      </div>
-    </section>
-
-    <section class="card controls-card">
-      <p class="kicker">Question Controls</p>
-      <label class="muted" for="levelSelect">Difficulty</label>
-      <select class="select" id="levelSelect"></select>
-      <label class="muted" for="categorySelect">Category</label>
-      <select class="select" id="categorySelect"></select>
-      <button class="btn btn-secondary btn-small" id="newQuestionBtn" type="button">New Random Question</button>
-    </section>
-  </aside>
-</div>
 
 
       </div>

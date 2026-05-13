@@ -1,5 +1,6 @@
 const STORAGE_KEY = "interviewArmorSavedAnswers";
 const PRACTICE_NOTES_KEY = "interviewArmorPracticeNotes";
+const DRAFT_KEY = "interviewArmorMockDraft";
 
 // Read API key from config.js (which sets window.GROQ_API_KEY)
 const GROQ_API_KEY = window.GROQ_API_KEY || "";
@@ -12,7 +13,6 @@ const elements = {
   questionTip: document.querySelector("#questionTip"),
   questionCategory: document.querySelector("#questionCategory"),
   questionLevel: document.querySelector("#questionLevel"),
-  heroStartBtn: document.querySelector("#heroStartBtn"),
   recordBtn: document.querySelector("#recordBtn"),
   stopBtn: document.querySelector("#stopBtn"),
   clearBtn: document.querySelector("#clearBtn"),
@@ -114,6 +114,41 @@ function resetTimer() {
   if (elements.recordTimer) elements.recordTimer.textContent = "00:00";
 }
 
+// ─── Draft persistence (auto-save current mock state) ───────
+
+function saveDraft() {
+  if (!currentQuestion) return;
+  const draft = {
+    questionId: currentQuestion.id,
+    transcript: elements.transcriptText.value,
+    feedback,
+    confidence: selectedConfidence,
+    level: elements.levelSelect.value,
+    category: elements.categorySelect.value
+  };
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    // localStorage may be full or unavailable; silently ignore
+  }
+}
+
+function loadDraft() {
+  try {
+    return JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function clearDraft() {
+  try {
+    localStorage.removeItem(DRAFT_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 // ─── Question selection with level + category cascade ───────
 
 function initLevelSelect() {
@@ -159,9 +194,6 @@ function setQuestion(question) {
   elements.questionCategory.textContent = question.category;
   elements.questionLevel.textContent = question.level;
   elements.questionLevel.className = `tag ${levelTagClass(question.level)}`;
-  elements.levelSelect.value = question.level;
-  initCategorySelect();
-  elements.categorySelect.value = question.category;
   renderPracticeNotes(question);
 }
 
@@ -170,16 +202,56 @@ function chooseRandomQuestion() {
   if (!pool.length) return;
   const question = pool[Math.floor(Math.random() * pool.length)];
   setQuestion(question);
+  saveDraft();
 }
 
 function initQuestion() {
   initLevelSelect();
   initCategorySelect();
+
+  // URL parameter wins — explicit navigation starts a fresh session
   const params = new URLSearchParams(window.location.search);
   const questionFromUrl = getQuestionById(params.get("q"));
+  if (questionFromUrl) {
+    clearDraft();
+    setQuestion(questionFromUrl);
+    return;
+  }
+
+  // Try to restore a draft from a previous session
+  const draft = loadDraft();
+  if (draft) {
+    const question = getQuestionById(draft.questionId);
+    if (question) {
+      // Restore filter dropdowns (only if the values are still valid options)
+      if (draft.level && [...elements.levelSelect.options].some((o) => o.value === draft.level)) {
+        elements.levelSelect.value = draft.level;
+        initCategorySelect();
+      }
+      if (draft.category && [...elements.categorySelect.options].some((o) => o.value === draft.category)) {
+        elements.categorySelect.value = draft.category;
+      }
+
+      setQuestion(question);
+
+      if (draft.transcript) {
+        elements.transcriptText.value = draft.transcript;
+        updateWordCount();
+      }
+      if (draft.feedback) {
+        feedback = draft.feedback;
+        renderFeedback(draft.feedback);
+      }
+      if (draft.confidence) {
+        selectConfidence(draft.confidence);
+      }
+      return;
+    }
+  }
+
+  // No URL param, no usable draft — fall back to default
   setQuestion(
-    questionFromUrl
-      || INTERVIEW_QUESTIONS.find((q) => q.level === "Beginner")
+    INTERVIEW_QUESTIONS.find((q) => q.level === "Beginner")
       || INTERVIEW_QUESTIONS[0]
   );
 }
@@ -252,8 +324,7 @@ async function startRecording() {
     stopTimer();
     setStatus("Recording complete. Playback is ready.");
     elements.recordBtn.classList.remove("is-recording");
-    elements.recordBtn.disabled = false;
-    if (elements.heroStartBtn) elements.heroStartBtn.disabled = false;
+    elements.recordBtn.setAttribute("aria-label", "Start recording");
     elements.stopBtn.disabled = true;
   });
 
@@ -261,14 +332,21 @@ async function startRecording() {
   startTimer();
   setStatus("Recording... speak your answer.", "recording");
   elements.recordBtn.classList.add("is-recording");
-  elements.recordBtn.disabled = true;
-  if (elements.heroStartBtn) elements.heroStartBtn.disabled = true;
+  elements.recordBtn.setAttribute("aria-label", "Stop recording");
   elements.stopBtn.disabled = false;
 }
 
 function stopRecording() {
   if (recorder && recorder.state !== "inactive") {
     recorder.stop();
+  }
+}
+
+function toggleRecording() {
+  if (recorder && recorder.state === "recording") {
+    stopRecording();
+  } else {
+    startRecording();
   }
 }
 
@@ -306,6 +384,7 @@ async function transcribeAudio() {
     const data = await response.json();
     elements.transcriptText.value = data.text || "";
     updateWordCount();
+    saveDraft();
     setApiStatus("Transcript ready.");
     if (elements.transcriptStatusText) elements.transcriptStatusText.textContent = "Transcribed.";
   } catch (error) {
@@ -390,11 +469,13 @@ Transcript: ${transcript}
     const content = data.choices?.[0]?.message?.content || "{}";
     feedback = JSON.parse(content);
     renderFeedback(feedback);
+    saveDraft();
     setApiStatus("Feedback ready.");
   } catch (error) {
     console.error(error);
     feedback = fallbackFeedback(transcript);
     renderFeedback(feedback);
+    saveDraft();
     setApiStatus("Live AI feedback failed, so a local fallback coaching note was generated.");
   } finally {
     elements.feedbackBtn.disabled = false;
@@ -461,6 +542,7 @@ function selectConfidence(value) {
     button.classList.toggle("is-selected", isSelected);
     button.classList.toggle("is-current", isSelected);
   });
+  saveDraft();
 }
 
 function saveAnswer() {
@@ -491,6 +573,7 @@ function saveAnswer() {
 
   saved.push(entry);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+  clearDraft();
   setApiStatus("Saved. Open the Saved page to review it.");
   if (typeof window.refreshSidebarStats === "function") window.refreshSidebarStats();
 }
@@ -499,6 +582,10 @@ function clearSession() {
   chunks = [];
   audioBlob = null;
   feedback = null;
+  selectedConfidence = "";
+  document.querySelectorAll("[data-confidence]").forEach((button) => {
+    button.classList.remove("is-selected", "is-current");
+  });
   elements.audioPlayer.removeAttribute("src");
   elements.audioPlayer.classList.add("hidden");
   elements.transcriptText.value = "";
@@ -508,6 +595,7 @@ function clearSession() {
   setStatus("Ready to record.");
   setApiStatus("");
   renderFeedback({});
+  clearDraft();
 }
 
 // ─── Event wiring ───────────────────────────────────────────
@@ -518,19 +606,16 @@ elements.levelSelect.addEventListener("change", () => {
   chooseRandomQuestion();
 });
 elements.categorySelect.addEventListener("change", chooseRandomQuestion);
-elements.recordBtn.addEventListener("click", startRecording);
-if (elements.heroStartBtn) elements.heroStartBtn.addEventListener("click", startRecording);
+elements.recordBtn.addEventListener("click", toggleRecording);
 elements.stopBtn.addEventListener("click", stopRecording);
 elements.clearBtn.addEventListener("click", clearSession);
 elements.transcribeBtn.addEventListener("click", transcribeAudio);
 elements.feedbackBtn.addEventListener("click", requestFeedback);
 elements.saveBtn.addEventListener("click", saveAnswer);
-elements.transcriptText.addEventListener("input", updateWordCount);
-
-document.querySelectorAll("[data-confidence]").forEach((button) => {
-  button.addEventListener("click", () => selectConfidence(button.dataset.confidence));
+elements.transcriptText.addEventListener("input", () => {
+  updateWordCount();
+  saveDraft();
 });
 
 initQuestion();
-renderFeedback({});
 updateWordCount();

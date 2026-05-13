@@ -1493,6 +1493,101 @@ h3 {
   margin: .35rem 0 .8rem;
 }
 
+/* ─── Mock page zone layout (4 horizontal zones) ─────────────── */
+
+/* Two-column rows used in Zone 3 (notes + record) and Zone 4 (feedback + readiness) */
+.mock-row {
+  display: grid;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.mock-row-record {
+  grid-template-columns: minmax(0, 4fr) minmax(0, 6fr);
+}
+
+.mock-row-review {
+  grid-template-columns: minmax(0, 6fr) minmax(0, 4fr);
+}
+
+/* When the prep-notes card is hidden, recording card spans the full row */
+.mock-row-record:has(> .practice-notes-card.hidden) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Keep prep notes visible while user scrolls through transcript / records */
+.practice-notes-card {
+  position: sticky;
+  top: 1.5rem;
+  align-self: start;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+}
+
+/* Zone 2: question text + inline question controls */
+.question-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 260px);
+  gap: 1.75rem;
+  align-items: start;
+}
+
+.question-bar-text h2 {
+  margin: .35rem 0 .55rem;
+  max-width: 690px;
+  font-size: clamp(1.65rem, 2.6vw, 2.35rem);
+  line-height: 1.18;
+}
+
+.question-bar-text .question-tip {
+  margin: .15rem 0 .85rem;
+}
+
+.question-bar-controls {
+  display: grid;
+  gap: .35rem;
+  padding-left: 1.5rem;
+  border-left: 1px solid var(--border);
+}
+
+.question-bar-controls .kicker {
+  margin-bottom: .35rem;
+}
+
+.question-bar-controls label {
+  margin-top: .35rem;
+  font-size: .8rem;
+}
+
+.question-bar-controls .select {
+  margin: .15rem 0 .55rem;
+}
+
+.question-bar-controls .btn {
+  margin-top: .4rem;
+  justify-self: start;
+}
+
+/* Stack everything vertically on narrow screens */
+@media (max-width: 1024px) {
+  .mock-row-record,
+  .mock-row-review,
+  .question-bar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .question-bar-controls {
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+    margin-top: .5rem;
+  }
+  .practice-notes-card {
+    position: static;
+    max-height: none;
+  }
+}
+
 .footer-quote {
   display: flex;
   justify-content: center;
