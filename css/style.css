@@ -732,6 +732,10 @@ h3 {
 }
 
 .belt-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: .9rem .7rem;
@@ -1382,6 +1386,11 @@ h3 {
   border-radius: .45rem;
 }
 
+/* Each belt card carries its own accent color, used for the selected state and arrow */
+.belt-card[data-confidence="Needs Work"]    { --belt-color: var(--gray-belt); }
+.belt-card[data-confidence="Almost Ready"]  { --belt-color: var(--bronze); }
+.belt-card[data-confidence="Strong Answer"] { --belt-color: var(--sage); }
+
 .belt-card small {
   display: block;
   margin-top: .3rem;
@@ -1393,18 +1402,61 @@ h3 {
 
 .belt-card.is-selected,
 .belt-card.is-current {
-  outline: 2px solid hsla(39, 67%, 36%, .36);
-  background: hsla(42, 76%, 92%, .58);
+  outline: 2px solid color-mix(in srgb, var(--belt-color, var(--bronze)) 70%, transparent);
+  background: color-mix(in srgb, var(--belt-color, var(--bronze)) 10%, hsla(42, 76%, 92%, .58));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--belt-color, var(--bronze)) 22%, transparent);
+}
+
+.readiness-card {
+  --readiness-pct: 0%;
+  --readiness-color: var(--gray-belt);
+}
+
+.readiness-card[data-tier="Needs Work"]    { --readiness-color: var(--gray-belt); }
+.readiness-card[data-tier="Almost Ready"]  { --readiness-color: var(--bronze); }
+.readiness-card[data-tier="Strong Answer"] { --readiness-color: var(--sage); }
+
+.progress-row {
+  position: relative;
+  margin: 1.15rem 0 .45rem;
+  padding-top: 11px; /* room for the arrow above the brush */
+}
+
+.progress-marker {
+  position: absolute;
+  left: var(--readiness-pct);
+  top: 0;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 10px solid var(--readiness-color);
+  filter: drop-shadow(0 1px 0 hsla(31, 16%, 30%, .15));
+  opacity: 0;
+  transition: left .4s ease, border-top-color .25s ease, opacity .25s ease;
+}
+
+.readiness-card.has-readiness .progress-marker {
+  opacity: 1;
 }
 
 .brush-progress {
-  height: 18px;
-  margin: 1.15rem 0 .45rem;
+  --brush-mask: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20680%2018%22%20preserveAspectRatio%3D%22none%22%3E%20%3Cpath%20d%3D%22%20M%203%209.4%20C%2022%206.8%2C%2060%205.6%2C%20105%207.2%20C%20158%209.0%2C%20215%204.8%2C%20270%206.4%20C%20330%208.2%2C%20395%204.2%2C%20455%206.0%20C%20510%207.6%2C%20560%205.4%2C%20612%207.0%20C%20640%207.8%2C%20660%207.2%2C%20672%207.6%20L%20672%2011.0%20C%20656%2013.6%2C%20620%2015.4%2C%20568%2013.6%20C%20510%2011.6%2C%20445%2016.0%2C%20385%2013.8%20C%20320%2011.4%2C%20250%2016.4%2C%20185%2014.0%20C%20128%2011.9%2C%2078%2015.6%2C%2038%2014.0%20C%2018%2013.2%2C%208%2013.6%2C%203%2012.6%20Z%22%20fill%3D%22white%22%2F%3E%20%3Cellipse%20cx%3D%22676%22%20cy%3D%229.4%22%20rx%3D%223.2%22%20ry%3D%221.1%22%20fill%3D%22white%22%2F%3E%20%3Ccircle%20cx%3D%22679.2%22%20cy%3D%229.6%22%20r%3D%220.7%22%20fill%3D%22white%22%2F%3E%20%3Ccircle%20cx%3D%22142%22%20cy%3D%2212.4%22%20r%3D%220.5%22%20fill%3D%22white%22%20opacity%3D%22.55%22%2F%3E%20%3C%2Fsvg%3E");
+  height: 16px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--crimson) 0 68%, hsla(31, 16%, 30%, .18) 68%);
-  mask-image: url("../assets/brush-divider.svg");
+  background: linear-gradient(
+    90deg,
+    var(--crimson) 0 var(--readiness-pct),
+    hsla(31, 16%, 30%, .22) var(--readiness-pct) 100%
+  );
+  mask-image: var(--brush-mask);
   mask-size: 100% 100%;
   mask-repeat: no-repeat;
+  -webkit-mask-image: var(--brush-mask);
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  transition: background .4s ease;
 }
 
 .overall-readiness {
@@ -1642,4 +1694,47 @@ h3 {
   .dojo-sidebar {
     order: 2;
   }
+}
+
+/* Mock page hero takes the full mock-stage width with no internal split */
+.reference-hero-card {
+  grid-template-columns: 1fr;
+  min-height: auto;
+}
+.reference-hero-card .hero-art {
+  display: none;
+}
+.reference-hero-card h1 {
+  font-size: clamp(2.45rem, 6vw, 4.75rem); /* matches the global h1 size */
+  max-width: none;
+}
+
+/* Vertical spacing between hero, prep notes, and the 2-column grid */
+.mock-stage > * + * {
+  margin-top: 1.2rem;
+}
+
+/* Belt graphic at the top of each readiness card */
+.belt-img {
+  display: block;
+  width: 84px;
+  height: 84px;
+  margin: .1rem auto .55rem;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* Tighten belt-card text so labels fit the narrow column */
+.readiness-card .belt-card strong {
+  display: block;
+  margin-top: .15rem;
+  font-size: .8rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.readiness-card .belt-card small {
+  font-size: .72rem;
+  line-height: 1.4;
+  max-width: 14ch;
 }

@@ -71,7 +71,11 @@ function debouncedSave(id, partial, statusEl) {
 // ─── Groq AI ideas ─────────────────────────────────────────
 
 function getGroqKey() {
-  // Phase 1 sprint shortcut: key is saved in localStorage.
+  // 1) Prefer window.GROQ_API_KEY from config.js — single source of truth across pages.
+  if (window.GROQ_API_KEY) return window.GROQ_API_KEY;
+
+  // 2) Fallback: if config.js is missing or empty, accept a key the user pastes
+  //    and remember it in localStorage for this browser.
   // Phase 2: move Groq calls to a backend proxy so the key never lives in the browser.
   let key = localStorage.getItem(API_KEY_STORAGE);
   if (!key) {
