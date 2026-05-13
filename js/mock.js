@@ -492,6 +492,7 @@ function saveAnswer() {
   saved.push(entry);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
   setApiStatus("Saved. Open the Saved page to review it.");
+  if (typeof window.refreshSidebarStats === "function") window.refreshSidebarStats();
 }
 
 function clearSession() {

@@ -303,6 +303,7 @@ elements.list.addEventListener("click", (event) => {
   const next = loadEntries().filter((e) => e.id !== id);
   saveEntries(next);
   refresh();
+  if (typeof window.refreshSidebarStats === "function") window.refreshSidebarStats();
 });
 
 refresh();
