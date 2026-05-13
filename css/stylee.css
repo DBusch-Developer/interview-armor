@@ -41,12 +41,9 @@ body {
   min-height: 100vh;
   font-family: Georgia, "Times New Roman", serif;
   color: var(--ink);
-  background-color: hsl(38, 18%, 88%);
-  background-image: url("../assets/body-bg.png");
-  background-position: center bottom;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  background:
+    linear-gradient(135deg, hsla(42, 58%, 96%, .92), hsla(40, 42%, 88%, .94)),
+    url("../assets/paper-grain.svg");
 }
 
 body::before {
@@ -104,6 +101,7 @@ button {
   top: 0;
   z-index: 100;
   min-height: var(--nav-height);
+  overflow: hidden;
   background-color: hsla(43, 66%, 96%, .92);
   background-image: url("../assets/navbar.png");
   background-position: center;
