@@ -2,8 +2,23 @@ const STORAGE_KEY = "interviewArmorSavedAnswers";
 const PRACTICE_NOTES_KEY = "interviewArmorPracticeNotes";
 const DRAFT_KEY = "interviewArmorMockDraft";
 
-// Read API key from config.js (which sets window.GROQ_API_KEY)
-const GROQ_API_KEY = window.GROQ_API_KEY || "";
+// Shared with practice.js — paste your key on either page, both pick it up.
+const API_KEY_STORAGE = "interviewArmorGroqKey";
+
+function getGroqKey() {
+  // 1) Prefer window.GROQ_API_KEY from config.js — single source of truth across pages.
+  if (window.GROQ_API_KEY) return window.GROQ_API_KEY;
+
+  // 2) Fallback: if config.js is missing or empty (e.g. on Vercel), accept a key
+  //    the user pastes and remember it in localStorage for this browser.
+  // Phase 2: move Groq calls to a backend proxy so the key never lives in the browser.
+  let key = localStorage.getItem(API_KEY_STORAGE);
+  if (!key) {
+    key = prompt("Paste your Groq API key. Phase 1 stores it in localStorage for this browser.");
+    if (key) localStorage.setItem(API_KEY_STORAGE, key.trim());
+  }
+  return key;
+}
 
 const elements = {
   levelSelect: document.querySelector("#levelSelect"),
@@ -357,8 +372,9 @@ async function transcribeAudio() {
     alert("Record an answer first.");
     return;
   }
-  if (!GROQ_API_KEY) {
-    setApiStatus("No API key configured. Set window.GROQ_API_KEY in js/config.js.");
+  const key = getGroqKey();
+  if (!key) {
+    setApiStatus("No API key provided. Add one to transcribe.");
     return;
   }
 
@@ -375,7 +391,7 @@ async function transcribeAudio() {
 
     const response = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
       method: "POST",
-      headers: { Authorization: `Bearer ${GROQ_API_KEY}` },
+      headers: { Authorization: `Bearer ${key}` },
       body: formData
     });
 
@@ -416,8 +432,9 @@ async function requestFeedback() {
     alert("Add a transcript before requesting feedback.");
     return;
   }
-  if (!GROQ_API_KEY) {
-    setApiStatus("No API key configured. Set window.GROQ_API_KEY in js/config.js.");
+  const key = getGroqKey();
+  if (!key) {
+    setApiStatus("No API key provided. Add one to get feedback.");
     return;
   }
 
@@ -445,7 +462,7 @@ Transcript: ${transcript}
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
+        Authorization: `Bearer ${key}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
