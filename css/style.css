@@ -7,9 +7,9 @@
   --ink: hsl(32, 13%, 10%);
   --ink-soft: hsl(31, 12%, 25%);
   --muted: hsl(31, 9%, 44%);
-  --paper: hsl(42, 58%, 93%);
-  --paper-deep: hsl(39, 43%, 87%);
-  --paper-card: hsla(40, 32%, 91%, .92);
+  --paper: #f2e8de;
+  --paper-deep: #f2e8de;
+  --paper-card: #f2e8de;
   --paper-card-solid: hsl(40, 32%, 91%);
   --border: hsla(31, 16%, 30%, .22);
   --crimson: hsl(358, 70%, 33%);
@@ -813,6 +813,7 @@ h3 {
 .saved-card {
   display: grid;
   gap: .75rem;
+  background-color: var(--paper-card);
 }
 
 .saved-card-header {
