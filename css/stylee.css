@@ -7,9 +7,9 @@
   --ink: hsl(32, 13%, 10%);
   --ink-soft: hsl(31, 12%, 25%);
   --muted: hsl(31, 9%, 44%);
-  --paper: #f2e8de;
-  --paper-deep: #f2e8de;
-  --paper-card: #f2e8de;
+  --paper: hsl(42, 58%, 93%);
+  --paper-deep: hsl(39, 43%, 87%);
+  --paper-card: hsla(40, 32%, 91%, .92);
   --paper-card-solid: hsl(40, 32%, 91%);
   --border: hsla(31, 16%, 30%, .22);
   --crimson: hsl(358, 70%, 33%);
@@ -41,12 +41,9 @@ body {
   min-height: 100vh;
   font-family: Georgia, "Times New Roman", serif;
   color: var(--ink);
-  background-color: hsl(38, 18%, 88%);
-  background-image: url("../assets/body-bg.png");
-  background-position: center bottom;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  background:
+    linear-gradient(135deg, hsla(42, 58%, 96%, .92), hsla(40, 42%, 88%, .94)),
+    url("../assets/paper-grain.svg");
 }
 
 body::before {
@@ -104,6 +101,7 @@ button {
   top: 0;
   z-index: 100;
   min-height: var(--nav-height);
+  overflow: hidden;
   background-color: hsla(43, 66%, 96%, .92);
   background-image: url("../assets/navbar.png");
   background-position: center;
@@ -813,7 +811,6 @@ h3 {
 .saved-card {
   display: grid;
   gap: .75rem;
-  background-color: var(--paper-card);
 }
 
 .saved-card-header {
@@ -2077,277 +2074,5 @@ h3 {
     justify-content: center;
     column-gap: 2.25rem;
     row-gap: .9rem;
-  }
-}
-
-/* ============================================================
-   MOBILE / RESPONSIVE FIXES
-   Each block is one specific bug; comments name the bug so this
-   layer is auditable later. Placed at end of file so these rules
-   win the cascade over earlier patches.
-   ============================================================ */
-
-/* ── Bug 01 — Page could scroll horizontally from stray overflow ──
-   Stops the "swipeable sideways" feeling on phones and contains
-   any image / pre / wide table that escapes its parent. */
-html, body {
-  overflow-x: hidden;
-}
-
-/* ── Bug 02 — body bg: fixed attachment thrashes scroll on iOS ──
-   The 1.9MB body-bg.png with background-attachment: fixed forces
-   the browser to repaint the bg on every scroll frame. On mobile
-   we let it scroll with the page (the default). */
-@media (max-width: 980px) {
-  body {
-    background-attachment: scroll;
-  }
-}
-
-/* ── Bug 03 — Hamburger drawer items off-screen on short phones ──
-   .main-nav was position: fixed with no max-height + no scroll, so
-   the last menu items sat below the viewport with no way to reach
-   them (landscape phones, small iPhones). Constrain to the visible
-   area below the header and make the drawer scroll its own contents.
-   Uses dvh where supported so the URL bar doesn't steal space. */
-@media (max-width: 760px) {
-  .main-nav {
-    max-height: calc(100vh - var(--nav-height) - 1.5rem);
-    max-height: calc(100dvh - var(--nav-height) - 1.5rem);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-  }
-}
-
-/* ── Bug 04 — Hero title cards clipping h1 + lead + buttons ──
-   .page-title-card.hero-* sets aspect-ratio: 1916/821 at every
-   width. On a 375px phone that gives ~154px of card height while
-   the title + paragraph + buttons need ~170-200px — and the card
-   has overflow: hidden, so the bottom of the lead text and the
-   buttons disappear. Drop the aspect ratio on phones; let content
-   drive the height and keep the artwork as a soft texture behind. */
-@media (max-width: 760px) {
-  .page-title-card.hero-home,
-  .page-title-card.hero-practice,
-  .page-title-card.hero-mock,
-  .page-title-card.hero-saved,
-  .page-title-card.hero-about {
-    aspect-ratio: auto;
-    min-height: 0;
-  }
-
-  /* The existing 760px rule already drops opacity to .2; nudge it
-     a touch further and pull the focal point to the right so the
-     darker artwork doesn't compete with the title text on the left. */
-  .page-title-card.hero-home::after,
-  .page-title-card.hero-practice::after,
-  .page-title-card.hero-mock::after,
-  .page-title-card.hero-saved::after,
-  .page-title-card.hero-about::after {
-    opacity: .16;
-    background-position: right center;
-  }
-}
-
-/* ── Bug 05 — Brand wordmark crowding the hamburger ──
-   Desktop letter-spacing of .28em is dramatic; on phones it spreads
-   "INTERVIEW" wider than the brand column needs and pushes against
-   the nav-toggle. */
-@media (max-width: 760px) {
-  .brand-text {
-    letter-spacing: .16em;
-  }
-}
-
-/* ── Bug 06 — Nav-shell double-margin on small phones ──
-   .nav-shell already lives inside a max-width container; the inner
-   padding-inline: clamp(1rem, 2.8vw, 2.5rem) stacked on top of the
-   outer 1rem page margin made the brand + toggle feel cramped.
-   Trim the inner padding on phones. */
-@media (max-width: 760px) {
-  .nav-shell {
-    padding-inline: .85rem;
-    gap: .65rem;
-  }
-}
-
-/* ── Bug 07 — Touch targets below the 44px guideline ──
-   Anything tappable should clear 44x44. The nav-toggle was 46px
-   on desktop but the focus ring + border could shrink the hit
-   area; lock it explicitly on phones. */
-@media (max-width: 760px) {
-  .nav-toggle {
-    width: 44px;
-    height: 44px;
-  }
-}
-
-/* ── Bug 08 — Mock-page record card padding eats phone width ──
-   .question-record-top, .recording-band and .transcript-panel use
-   padding: ... 1.9rem horizontally. On a 360px phone that leaves
-   barely 240px for content, forcing transcript text and timer to
-   wrap awkwardly. Pull gutters in to 1.1rem on phones. */
-@media (max-width: 760px) {
-  .question-record-top,
-  .recording-band,
-  .transcript-panel {
-    padding-left: 1.1rem;
-    padding-right: 1.1rem;
-  }
-}
-
-/* ── Bug 09 — Question-bar watermark fights the title on phones ──
-   .question-bar-text has a watermark bg image on the right that's
-   designed for the desktop 2-column bar. When the bar stacks under
-   ≤1024px the watermark sits directly behind the title and
-   reduces contrast. Hide it on phones. */
-@media (max-width: 760px) {
-  .question-bar-text {
-    background-image: none;
-  }
-}
-
-/* ── Bug 10 — Sidebar stats overflow at < 380px viewports ──
-   The 720px breakpoint uses repeat(2, max-content) with a 2.25rem
-   column gap. Long stat values (e.g. "Pick a category") + that gap
-   can spill the sidebar at very narrow widths. Switch to 1fr cols
-   so the grid hard-caps to the available width. */
-@media (max-width: 420px) {
-  .sidebar-stats,
-  .reference-side-stats {
-    grid-template-columns: repeat(2, 1fr);
-    justify-content: stretch;
-    column-gap: 1rem;
-  }
-
-  .reference-side-stats .side-stat {
-    grid-template-columns: 28px 1fr;
-    column-gap: .5rem;
-  }
-
-  .reference-side-stats .side-stat i {
-    width: 26px;
-    height: 26px;
-    font-size: .85rem;
-  }
-
-  .reference-side-stats .side-stat strong {
-    font-size: .92rem;
-  }
-
-  .reference-side-stats .side-stat-value {
-    font-size: .8rem;
-  }
-}
-
-/* ── Bug 11 — Belt grid becomes a tall single column < 760px ──
-   The three readiness belts (Needs Work / Almost Ready / Strong
-   Answer) collapsed to a stacked column under the existing 760
-   breakpoint, making the mock page very long. Keep 3-up on small
-   tablets and large phones; only stack on the very smallest. */
-@media (min-width: 481px) and (max-width: 760px) {
-  .belt-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: .5rem;
-  }
-
-  .readiness-card .belt-card {
-    min-height: 0;
-    padding: .7rem .4rem;
-  }
-
-  .belt-img {
-    width: 58px;
-    height: 58px;
-    margin-bottom: .35rem;
-  }
-
-  .readiness-card .belt-card small {
-    font-size: .68rem;
-  }
-}
-
-/* ── Bug 12 — Tightening for very narrow phones (≤ 480px) ──
-   Pulls in the outer page margin to one consistent value, scales
-   headings down so they don't dominate the viewport, and lets the
-   hero buttons share the row evenly instead of one wrapping alone. */
-@media (max-width: 480px) {
-  .page-shell,
-  .footer {
-    width: 100%;
-    padding-inline: .85rem;
-  }
-
-  h1, .display-title {
-    font-size: clamp(1.85rem, 9vw, 2.6rem);
-    line-height: 1.05;
-  }
-
-  h2 {
-    font-size: clamp(1.4rem, 6.5vw, 2rem);
-    line-height: 1.1;
-  }
-
-  .pad {
-    padding: clamp(.95rem, 4.2vw, 1.3rem);
-  }
-
-  /* Hero buttons stretch to share the row evenly rather than one
-     button on its own line. */
-  .hero-home .btn-row .btn,
-  .page-title-card .btn-row .btn {
-    flex: 1 1 140px;
-  }
-
-  /* Coach score icons + recording orb scale down a touch. */
-  .recording-orb {
-    width: 96px;
-    height: 96px;
-    font-size: 1.9rem;
-  }
-
-  .coach-icon-img {
-    width: 46px;
-    height: 46px;
-  }
-
-  /* Confidence pill on a saved card moves to its own line if the
-     question is long. flex-wrap was already on; this just sets the
-     alignment when it does wrap. */
-  .saved-card-header .confidence-pill {
-    align-self: flex-start;
-  }
-
-  /* Footer brush strokes shrink to keep the quote readable. */
-  .footer-quote {
-    font-size: .92rem;
-    line-height: 1.5;
-    margin-top: .5rem;
-  }
-}
-
-/* ── Bug 13 — Long words / URLs in feedback text break the layout ──
-   Transcript and AI-coach feedback fields can contain long unbroken
-   strings (URLs, identifiers). Without a wrap rule they push the
-   card wider than the viewport on mobile. */
-.saved-transcript,
-.feedback-item span,
-.coach-quote,
-.question-card,
-.saved-question {
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-/* ── Bug 14 — Inputs zoom the viewport on iOS focus ──
-   Mobile Safari auto-zooms when a focused input has < 16px font.
-   The .input / .select / .textarea inherit Georgia which renders
-   smaller than the implicit 16px — lock the font-size on mobile. */
-@media (max-width: 760px) {
-  .input,
-  .select,
-  .textarea {
-    font-size: 16px;
   }
 }
