@@ -16,7 +16,7 @@
 
     <header class="site-header">
       <div class="nav-shell">
-        <a class="brand" href="index.html" aria-label="Interview Armor — home">
+        <a class="brand" href="index.html" data-page="index.html" aria-label="Interview Armor — home">
           <img src="assets/logo.png" alt="" />
           <span class="brand-text"
             ><span>Interview</span><span>Armor</span></span
@@ -116,8 +116,8 @@
               aria-label="Discipline, focus, and growth in Japanese"
             >
               <span><strong>守</strong><small></small></span>
-              <span><strong>破 </strong><small></small></span>
-              <span><strong>破 </strong><small></small></span>
+              <span><strong>破</strong><small></small></span>
+              <span><strong>離</strong><small></small></span>
             </div>
             <p class="sidebar-mantra">
               <span>Discipline</span><span>Focus</span><span>Growth</span>
@@ -160,7 +160,7 @@
                   placeholder="Search by keyword, category, or tip..."
                 />
               </div>
-              <a class="btn btn-primary" href="mock.html">Start Random Mock</a>
+              <a class="btn btn-primary" href="mock.html" data-page="mock.html">Start Random Mock</a>
             </div>
 
             <p class="kicker" style="margin-top: 1.25rem">Difficulty</p>
@@ -179,9 +179,12 @@
       <p class="footer-quote">A worthy answer is forged with preparation and delivered with purpose.<span class="seal" aria-hidden="true"></span></p>
     </footer>
 
-    <script src="js/main.js"></script>
-    <script src="js/config.js"></script>
+    <script src="js/storage-keys.js"></script>
     <script src="js/questions.js"></script>
     <script src="js/practice.js"></script>
-  </body>
+    <script src="js/mock.js"></script>
+    <script src="js/saved.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/router.js"></script>
+</body>
 </html>

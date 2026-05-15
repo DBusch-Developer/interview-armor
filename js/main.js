@@ -1,8 +1,17 @@
-// Mobile nav: hooks into data attributes so the HTML can stay declarative
+// ─────────────────────────────────────────────────────────────
+// Main / shell
+// ─────────────────────────────────────────────────────────────
+// Runs on every page. Handles the mobile nav drawer, the active
+// nav highlight, and the dojo-sidebar stat block (Today's Focus,
+// Streak, Sessions, Accuracy). Sidebar refresh is also exposed
+// on window so the SPA router can call it after navigation.
+
+// ─── Mobile nav drawer ──────────────────────────────────────
 const navToggle = document.querySelector("[data-nav-toggle]");
 const mainNav = document.querySelector("[data-main-nav]");
 
 function closeMobileNav() {
+  if (!navToggle || !mainNav) return;
   navToggle.setAttribute("aria-expanded", "false");
   mainNav.classList.remove("is-open");
 }
@@ -14,21 +23,17 @@ if (navToggle && mainNav) {
     mainNav.classList.toggle("is-open", !isOpen);
   });
 
-  // Tapping a link inside the drawer closes it on mobile
+  // Tapping a link in the drawer closes it on mobile.
   mainNav.addEventListener("click", (event) => {
-    if (event.target.closest("a")) {
-      closeMobileNav();
-    }
+    if (event.target.closest("a")) closeMobileNav();
   });
 
-  // Resizing past the mobile breakpoint resets the drawer state
+  // Resizing past the mobile breakpoint resets the drawer.
   window.addEventListener("resize", () => {
-    if (window.innerWidth > 760) {
-      closeMobileNav();
-    }
+    if (window.innerWidth > 760) closeMobileNav();
   });
 
-  // Esc closes the drawer from anywhere on the page
+  // Esc closes the drawer from anywhere.
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && mainNav.classList.contains("is-open")) {
       closeMobileNav();
@@ -37,33 +42,23 @@ if (navToggle && mainNav) {
   });
 }
 
-// Highlight the nav link that matches the current page
-const currentPage = location.pathname.split("/").pop() || "index.html";
-document.querySelectorAll("[data-page]").forEach((link) => {
-  if (link.getAttribute("data-page") === currentPage) {
-    link.classList.add("is-active");
-  }
-});
-
-// ─── Dynamic sidebar stats ─────────────────────────────────
-// Reads saved sessions out of localStorage and updates the four
-// dojo-sidebar values (Today's Focus, Streak, Sessions, Accuracy).
-// Lives in main.js so every page that has the sidebar gets it for free.
-
-const SIDEBAR_STORAGE_KEY = "interviewArmorSavedAnswers";
+// ─── Sidebar stats ──────────────────────────────────────────
+// Reads saved sessions out of localStorage and writes the four
+// values into [data-sidebar-stats]. The sidebar lives in the
+// shell, so it isn't swapped by the router — just re-read after
+// any save/delete via window.refreshSidebarStats().
 
 function loadSavedEntriesForStats() {
   try {
-    const raw = JSON.parse(localStorage.getItem(SIDEBAR_STORAGE_KEY) || "[]");
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.SAVED_ANSWERS) || "[]");
     return Array.isArray(raw) ? raw : [];
   } catch {
     return [];
   }
 }
 
-// Convert a Date to a local YYYY-MM-DD key so two saves on the same
-// calendar day collide regardless of time. en-CA gives ISO-style dates
-// in local time, which is what we want for streak counting.
+// en-CA returns ISO-style YYYY-MM-DD in local time, which is
+// exactly what we want for "same calendar day" comparisons.
 function localDayKey(date) {
   return date.toLocaleDateString("en-CA");
 }
@@ -71,7 +66,7 @@ function localDayKey(date) {
 function computeSidebarStats() {
   const entries = loadSavedEntriesForStats();
 
-  // ── Today's Focus: category of the most recently saved session ──
+  // Today's Focus: category of the most recently saved session.
   let focus = "Pick a category";
   if (entries.length) {
     const sorted = entries.slice().sort((a, b) => {
@@ -82,9 +77,9 @@ function computeSidebarStats() {
     focus = sorted[0].category || "Pick a category";
   }
 
-  // ── Streak: consecutive days with at least one save, counting back ──
-  // If nothing today yet, start from yesterday so a 4pm visit doesn't
-  // wipe a real streak.
+  // Streak: consecutive days with at least one save, counting
+  // back. If nothing saved today, start from yesterday so a 4pm
+  // visit doesn't wipe a real streak.
   const daysWithSaves = new Set();
   for (const entry of entries) {
     const d = new Date(entry.createdAt);
@@ -104,7 +99,7 @@ function computeSidebarStats() {
     }
   }
 
-  // ── Sessions this week (Monday-based) ──
+  // Sessions this week (Monday-based).
   const startOfWeek = new Date();
   startOfWeek.setHours(0, 0, 0, 0);
   const daysFromMonday = (startOfWeek.getDay() + 6) % 7;
@@ -114,8 +109,8 @@ function computeSidebarStats() {
     return !Number.isNaN(t) && t >= startOfWeek.getTime();
   }).length;
 
-  // ── Accuracy: average of overall-readiness % across scored saves ──
-  // Same formula mock.js uses: ((clarity + structure + confidence) / 3) * 10.
+  // Accuracy: average of overall-readiness % across scored saves.
+  // Same formula as mock.js: ((clarity + structure + confidence) / 3) * 10.
   const scored = entries.filter((entry) => {
     const f = entry.feedback;
     if (!f) return false;
@@ -124,8 +119,8 @@ function computeSidebarStats() {
   let accuracy = null;
   if (scored.length) {
     const sum = scored.reduce((acc, entry) => {
-      const c = Number(entry.feedback.clarity) || 0;
-      const s = Number(entry.feedback.structure) || 0;
+      const c  = Number(entry.feedback.clarity)    || 0;
+      const s  = Number(entry.feedback.structure)  || 0;
       const cf = Number(entry.feedback.confidence) || 0;
       return acc + ((c + s + cf) / 3) * 10;
     }, 0);
@@ -134,9 +129,9 @@ function computeSidebarStats() {
 
   return {
     focus,
-    streak: streak === 1 ? "1 day" : `${streak} days`,
+    streak:   streak === 1 ? "1 day" : `${streak} days`,
     sessions: sessionsThisWeek === 1 ? "1 this week" : `${sessionsThisWeek} this week`,
-    accuracy: accuracy == null ? "—" : `${accuracy}%`
+    accuracy: accuracy == null ? "—" : `${accuracy}%`,
   };
 }
 
@@ -154,14 +149,15 @@ function refreshSidebarStats() {
   setStat("accuracy", stats.accuracy);
 }
 
-// Initial paint
+// Initial paint.
 refreshSidebarStats();
 
-// Re-paint if another tab writes new sessions
+// Re-paint if another tab writes new sessions.
 window.addEventListener("storage", (event) => {
-  if (event.key === SIDEBAR_STORAGE_KEY) refreshSidebarStats();
+  if (event.key === STORAGE_KEYS.SAVED_ANSWERS) refreshSidebarStats();
 });
 
-// Expose so mock.js (after save) and saved.js (after delete) can refresh
-// the sidebar in the current tab without a full page reload.
+// Exposed so mock.js (after save), saved.js (after delete), and
+// the router (after any navigation) can refresh the sidebar in
+// the current tab.
 window.refreshSidebarStats = refreshSidebarStats;

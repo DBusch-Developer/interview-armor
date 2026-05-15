@@ -16,7 +16,7 @@
 
     <header class="site-header">
       <div class="nav-shell">
-        <a class="brand" href="index.html" aria-label="Interview Armor — home">
+        <a class="brand" href="index.html" data-page="index.html" aria-label="Interview Armor — home">
           <img src="assets/logo.png" alt="" />
           <span class="brand-text"
             ><span>Interview</span><span>Armor</span></span
@@ -116,8 +116,8 @@
               aria-label="Discipline, focus, and growth in Japanese"
             >
               <span><strong>守</strong><small></small></span>
-              <span><strong>破 </strong><small></small></span>
-              <span><strong>破 </strong><small></small></span>
+              <span><strong>破</strong><small></small></span>
+              <span><strong>離</strong><small></small></span>
             </div>
             <p class="sidebar-mantra">
               <span>Discipline</span><span>Focus</span><span>Growth</span>
@@ -188,8 +188,11 @@
             <div class="tag-row">
               <span class="tag">HTML</span>
               <span class="tag">CSS</span>
-              <span class="tag">JavaScript</span>
-              <span class="tag">Groq API</span>
+              <span class="tag">Vanilla JavaScript</span>
+              <span class="tag">SPA Router</span>
+              <span class="tag">MediaRecorder API</span>
+              <span class="tag">Groq Whisper</span>
+              <span class="tag">Groq Llama 3.3</span>
               <span class="tag">localStorage</span>
             </div>
           </section>
@@ -198,11 +201,13 @@
             <p class="kicker">Current Version</p>
             <h2>What's working today.</h2>
             <ul class="about-list">
-              <li>Junior developer interview question bank</li>
+              <li>Single-page navigation — no full reloads between tabs</li>
+              <li>Junior developer interview question bank with level + category filters</li>
               <li>Mock interview recording with audio playback</li>
-              <li>Speech-to-text transcription</li>
-              <li>AI-generated interview feedback</li>
+              <li>Speech-to-text transcription via Groq Whisper</li>
+              <li>AI coaching feedback with clarity, structure, and confidence scores</li>
               <li>Saved transcripts and feedback for review</li>
+              <li>Auto-saved drafts so you can pick up where you left off</li>
             </ul>
           </section>
 
@@ -228,6 +233,12 @@
       </p>
     </footer>
 
+    <script src="js/storage-keys.js"></script>
+    <script src="js/questions.js"></script>
+    <script src="js/practice.js"></script>
+    <script src="js/mock.js"></script>
+    <script src="js/saved.js"></script>
     <script src="js/main.js"></script>
-  </body>
+    <script src="js/router.js"></script>
+</body>
 </html>

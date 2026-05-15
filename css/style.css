@@ -2359,3 +2359,24 @@ html, body {
     font-size: 16px;
   }
 }
+
+/* ── SPA + Practice list fixes ───────────────────────────────
+   .is-hidden hides cards when the search/filter pass excludes
+   them. We toggle this class instead of rebuilding the grid on
+   every keystroke — keeps focus, selection, and scroll position
+   intact.
+   .is-loading is set briefly on the content-stack while the
+   router fetches the next page; a soft dim is enough to signal
+   activity without flashing a spinner. */
+.question-card.is-hidden {
+  display: none;
+}
+
+.content-stack.is-loading {
+  opacity: 0.55;
+  transition: opacity 0.18s ease-out;
+  pointer-events: none;
+}
+.content-stack {
+  transition: opacity 0.18s ease-out;
+}

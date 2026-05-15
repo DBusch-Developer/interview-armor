@@ -1,448 +1,443 @@
-const STORAGE_KEY = "interviewArmorSavedAnswers";
-const PRACTICE_NOTES_KEY = "interviewArmorPracticeNotes";
-const DRAFT_KEY = "interviewArmorMockDraft";
+// ─────────────────────────────────────────────────────────────
+// Mock interview page
+// ─────────────────────────────────────────────────────────────
+// Record an answer, transcribe with Groq Whisper, get coaching
+// from Groq Llama, save the result for the Saved page.
+//
+// Exposes:
+//   window.initMock()     — boots the page (called by router)
+//   window.teardownMock() — stops the recorder, revokes blob URLs,
+//                           clears timers
+//
+// All DOM lookups happen inside initMock so this file is safe to
+// load on any page; nothing runs until the router calls it.
 
-// Shared with practice.js — paste your key on either page, both pick it up.
-const API_KEY_STORAGE = "interviewArmorGroqKey";
-
-function getGroqKey() {
-  // 1) Prefer window.GROQ_API_KEY from config.js — single source of truth across pages.
-  if (window.GROQ_API_KEY) return window.GROQ_API_KEY;
-
-  // 2) Fallback: if config.js is missing or empty (e.g. on Vercel), accept a key
-  //    the user pastes and remember it in localStorage for this browser.
-  // Phase 2: move Groq calls to a backend proxy so the key never lives in the browser.
-  let key = localStorage.getItem(API_KEY_STORAGE);
-  if (!key) {
-    key = prompt("Paste your Groq API key. Phase 1 stores it in localStorage for this browser.");
-    if (key) localStorage.setItem(API_KEY_STORAGE, key.trim());
-  }
-  return key;
-}
-
-const elements = {
-  levelSelect: document.querySelector("#levelSelect"),
-  categorySelect: document.querySelector("#categorySelect"),
-  newQuestionBtn: document.querySelector("#newQuestionBtn"),
-  questionText: document.querySelector("#questionText"),
-  questionTip: document.querySelector("#questionTip"),
-  questionCategory: document.querySelector("#questionCategory"),
-  questionLevel: document.querySelector("#questionLevel"),
-  recordBtn: document.querySelector("#recordBtn"),
-  stopBtn: document.querySelector("#stopBtn"),
-  clearBtn: document.querySelector("#clearBtn"),
-  recordingStatus: document.querySelector("#recordingStatus"),
-  statusDot: document.querySelector("#statusDot"),
-  recordTimer: document.querySelector("#recordTimer"),
-  audioPlayer: document.querySelector("#audioPlayer"),
-  transcriptText: document.querySelector("#transcriptText"),
-  transcriptStatusText: document.querySelector("#transcriptStatusText"),
-  wordCount: document.querySelector("#wordCount"),
-  transcribeBtn: document.querySelector("#transcribeBtn"),
-  feedbackBtn: document.querySelector("#feedbackBtn"),
-  apiStatus: document.querySelector("#apiStatus"),
-  saveBtn: document.querySelector("#saveBtn"),
-  strengthText: document.querySelector("#strengthText"),
-  improveText: document.querySelector("#improveText"),
-  strongerAnswerText: document.querySelector("#strongerAnswerText"),
-  confidenceTipText: document.querySelector("#confidenceTipText"),
-  clarityMeter: document.querySelector("#clarityMeter"),
-  structureMeter: document.querySelector("#structureMeter"),
-  confidenceMeter: document.querySelector("#confidenceMeter"),
-  clarityScore: document.querySelector("#clarityScore"),
-  structureScore: document.querySelector("#structureScore"),
-  confidenceScore: document.querySelector("#confidenceScore"),
-  overallReadiness: document.querySelector("#overallReadiness"),
-  practiceNotesCard: document.querySelector("#practiceNotesCard"),
-  practiceNotesContent: document.querySelector("#practiceNotesContent")
-};
-
-let currentQuestion = null;
-let recorder = null;
-let chunks = [];
-let audioBlob = null;
-let selectedConfidence = "";
-let feedback = null;
-let timerInterval = null;
-let timerStartedAt = null;
-
-// ─── Helpers ────────────────────────────────────────────────
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function levelTagClass(level) {
-  if (level === "Beginner") return "tag-sage";
-  if (level === "Intermediate") return "tag-bronze";
-  if (level === "Advanced") return "tag-red";
-  return "";
-}
-
-function setStatus(message, mode = "idle") {
-  elements.recordingStatus.textContent = message;
-  elements.statusDot.classList.toggle("recording", mode === "recording");
-  if (elements.transcriptStatusText) {
-    elements.transcriptStatusText.textContent = mode === "recording" ? "Recording..." : message;
-  }
-}
-
-function setApiStatus(message) {
-  elements.apiStatus.textContent = message || "";
-}
-
-function updateWordCount() {
-  if (!elements.wordCount) return;
-  const count = elements.transcriptText.value.trim().split(/\s+/).filter(Boolean).length;
-  elements.wordCount.textContent = `${count} ${count === 1 ? "word" : "words"}`;
-}
-
-function formatTimer(milliseconds) {
-  const totalSeconds = Math.floor(milliseconds / 1000);
-  const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
-  const seconds = String(totalSeconds % 60).padStart(2, "0");
-  return `${minutes}:${seconds}`;
-}
-
-function startTimer() {
-  if (!elements.recordTimer) return;
-  timerStartedAt = Date.now();
-  elements.recordTimer.textContent = "00:00";
-  clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    elements.recordTimer.textContent = formatTimer(Date.now() - timerStartedAt);
-  }, 250);
-}
-
-function stopTimer() {
-  clearInterval(timerInterval);
-  timerInterval = null;
-}
-
-function resetTimer() {
-  stopTimer();
-  if (elements.recordTimer) elements.recordTimer.textContent = "00:00";
-}
-
-// ─── Draft persistence (auto-save current mock state) ───────
-
-function saveDraft() {
-  if (!currentQuestion) return;
-  const draft = {
-    questionId: currentQuestion.id,
-    transcript: elements.transcriptText.value,
-    feedback,
-    confidence: selectedConfidence,
-    level: elements.levelSelect.value,
-    category: elements.categorySelect.value
+(function () {
+  // Per-page state. Scoped to this IIFE so we can reset it
+  // cleanly on every init() without leaking to window.
+  const state = {
+    elements: null,
+    currentQuestion: null,
+    recorder: null,
+    stream: null,             // active getUserMedia stream
+    chunks: [],
+    audioBlob: null,
+    audioUrl: null,           // the *current* blob URL, tracked
+                              // so we can revoke before replacing it
+    selectedConfidence: "",
+    feedback: null,
+    timerInterval: null,
+    timerStartedAt: null,
+    listeners: [],            // for teardown
+    isWired: false,
   };
-  try {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-  } catch {
-    // localStorage may be full or unavailable; silently ignore
-  }
-}
 
-function loadDraft() {
-  try {
-    return JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
-  } catch {
-    return null;
-  }
-}
+  // ─── Groq key ───────────────────────────────────────────────
 
-function clearDraft() {
-  try {
-    localStorage.removeItem(DRAFT_KEY);
-  } catch {
-    // ignore
-  }
-}
-
-// ─── Question selection with level + category cascade ───────
-
-function initLevelSelect() {
-  elements.levelSelect.innerHTML = INTERVIEW_LEVELS.map((level) => {
-    return `<option value="${level}">${level}</option>`;
-  }).join("");
-}
-
-function getCategoriesForLevel(level) {
-  if (level === "All") return INTERVIEW_CATEGORIES;
-  const available = new Set();
-  for (const q of INTERVIEW_QUESTIONS) {
-    if (q.level === level) available.add(q.category);
-  }
-  return ["All", ...INTERVIEW_CATEGORIES.filter((c) => c !== "All" && available.has(c))];
-}
-
-function initCategorySelect() {
-  const categories = getCategoriesForLevel(elements.levelSelect.value || "All");
-  elements.categorySelect.innerHTML = categories.map((cat) => {
-    return `<option value="${cat}">${cat}</option>`;
-  }).join("");
-}
-
-function getQuestionById(id) {
-  return INTERVIEW_QUESTIONS.find((q) => q.id === id);
-}
-
-function getQuestionsForSelectedFilters() {
-  const level = elements.levelSelect.value || "All";
-  const category = elements.categorySelect.value || "All";
-  return INTERVIEW_QUESTIONS.filter((q) => {
-    if (level !== "All" && q.level !== level) return false;
-    if (category !== "All" && q.category !== category) return false;
-    return true;
-  });
-}
-
-function setQuestion(question) {
-  currentQuestion = question;
-  elements.questionText.textContent = question.question;
-  elements.questionTip.textContent = question.tip;
-  elements.questionCategory.textContent = question.category;
-  elements.questionLevel.textContent = question.level;
-  elements.questionLevel.className = `tag ${levelTagClass(question.level)}`;
-  renderPracticeNotes(question);
-}
-
-function chooseRandomQuestion() {
-  const pool = getQuestionsForSelectedFilters();
-  if (!pool.length) return;
-  const question = pool[Math.floor(Math.random() * pool.length)];
-  setQuestion(question);
-  saveDraft();
-}
-
-function initQuestion() {
-  initLevelSelect();
-  initCategorySelect();
-
-  // URL parameter wins — explicit navigation starts a fresh session
-  const params = new URLSearchParams(window.location.search);
-  const questionFromUrl = getQuestionById(params.get("q"));
-  if (questionFromUrl) {
-    clearDraft();
-    setQuestion(questionFromUrl);
-    return;
+  function getGroqKey() {
+    if (window.GROQ_API_KEY) return window.GROQ_API_KEY;
+    let key = localStorage.getItem(STORAGE_KEYS.GROQ_KEY);
+    if (!key) {
+      key = prompt("Paste your Groq API key. Phase 1 stores it in localStorage for this browser.");
+      if (key) localStorage.setItem(STORAGE_KEYS.GROQ_KEY, key.trim());
+    }
+    return key;
   }
 
-  // Try to restore a draft from a previous session
-  const draft = loadDraft();
-  if (draft) {
-    const question = getQuestionById(draft.questionId);
-    if (question) {
-      // Restore filter dropdowns (only if the values are still valid options)
-      if (draft.level && [...elements.levelSelect.options].some((o) => o.value === draft.level)) {
-        elements.levelSelect.value = draft.level;
-        initCategorySelect();
-      }
-      if (draft.category && [...elements.categorySelect.options].some((o) => o.value === draft.category)) {
-        elements.categorySelect.value = draft.category;
-      }
+  // ─── Helpers ────────────────────────────────────────────────
 
-      setQuestion(question);
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
 
-      if (draft.transcript) {
-        elements.transcriptText.value = draft.transcript;
-        updateWordCount();
-      }
-      if (draft.feedback) {
-        feedback = draft.feedback;
-        renderFeedback(draft.feedback);
-      }
-      if (draft.confidence) {
-        selectConfidence(draft.confidence);
-      }
-      return;
+  function levelTagClass(level) {
+    if (level === "Beginner") return "tag-sage";
+    if (level === "Intermediate") return "tag-bronze";
+    if (level === "Advanced") return "tag-red";
+    return "";
+  }
+
+  function setStatus(message, mode = "idle") {
+    state.elements.recordingStatus.textContent = message;
+    state.elements.statusDot.classList.toggle("recording", mode === "recording");
+    if (state.elements.transcriptStatusText) {
+      state.elements.transcriptStatusText.textContent = mode === "recording" ? "Recording..." : message;
     }
   }
 
-  // No URL param, no usable draft — fall back to default
-  setQuestion(
-    INTERVIEW_QUESTIONS.find((q) => q.level === "Beginner")
-      || INTERVIEW_QUESTIONS[0]
-  );
-}
-
-// ─── Pull prep notes from practice page localStorage ────────
-
-function renderPracticeNotes(question) {
-  if (!elements.practiceNotesCard || !elements.practiceNotesContent || !question) return;
-
-  let stored = {};
-  try {
-    stored = JSON.parse(localStorage.getItem(PRACTICE_NOTES_KEY) || "{}");
-  } catch {
-    stored = {};
+  function setApiStatus(message) {
+    state.elements.apiStatus.textContent = message || "";
   }
 
-  const saved = stored[question.id];
-  const hasContent = saved && (saved.notes || saved.draft);
-
-  if (!hasContent) {
-    elements.practiceNotesCard.classList.add("hidden");
-    return;
+  function updateWordCount() {
+    if (!state.elements.wordCount) return;
+    const count = state.elements.transcriptText.value.trim().split(/\s+/).filter(Boolean).length;
+    state.elements.wordCount.textContent = `${count} ${count === 1 ? "word" : "words"}`;
   }
 
-  elements.practiceNotesCard.classList.remove("hidden");
-  const parts = [];
-  if (saved.notes) {
-    parts.push(`<p class="kicker" style="margin-top:.6rem;">Notes</p>`);
-    parts.push(`<p class="muted" style="white-space:pre-wrap; margin-bottom:.4rem;">${escapeHtml(saved.notes)}</p>`);
-  }
-  if (saved.draft) {
-    parts.push(`<p class="kicker" style="margin-top:.85rem;">Draft answer</p>`);
-    parts.push(`<p class="muted" style="white-space:pre-wrap; margin-bottom:.4rem;">${escapeHtml(saved.draft)}</p>`);
-  }
-  elements.practiceNotesContent.innerHTML = parts.join("");
-}
-
-// ─── Recording ──────────────────────────────────────────────
-
-function getBestMimeType() {
-  const types = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
-  return types.find((type) => MediaRecorder.isTypeSupported(type)) || "";
-}
-
-async function startRecording() {
-  if (!navigator.mediaDevices || !window.MediaRecorder) {
-    alert("Your browser does not support microphone recording with MediaRecorder.");
-    return;
+  function formatTimer(milliseconds) {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+    const seconds = String(totalSeconds % 60).padStart(2, "0");
+    return `${minutes}:${seconds}`;
   }
 
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  chunks = [];
-  audioBlob = null;
+  function startTimer() {
+    if (!state.elements.recordTimer) return;
+    state.timerStartedAt = Date.now();
+    state.elements.recordTimer.textContent = "00:00";
+    clearInterval(state.timerInterval);
+    state.timerInterval = setInterval(() => {
+      state.elements.recordTimer.textContent = formatTimer(Date.now() - state.timerStartedAt);
+    }, 250);
+  }
 
-  const mimeType = getBestMimeType();
-  recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+  function stopTimer() {
+    clearInterval(state.timerInterval);
+    state.timerInterval = null;
+  }
 
-  recorder.addEventListener("dataavailable", (event) => {
-    if (event.data.size > 0) chunks.push(event.data);
-  });
-
-  recorder.addEventListener("stop", () => {
-    audioBlob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
-    const url = URL.createObjectURL(audioBlob);
-    elements.audioPlayer.src = url;
-    elements.audioPlayer.classList.remove("hidden");
-    elements.transcribeBtn.disabled = false;
-
-    stream.getTracks().forEach((track) => track.stop());
+  function resetTimer() {
     stopTimer();
-    setStatus("Recording complete. Playback is ready.");
-    elements.recordBtn.classList.remove("is-recording");
-    elements.recordBtn.setAttribute("aria-label", "Start recording");
-    elements.stopBtn.disabled = true;
-  });
-
-  recorder.start();
-  startTimer();
-  setStatus("Recording... speak your answer.", "recording");
-  elements.recordBtn.classList.add("is-recording");
-  elements.recordBtn.setAttribute("aria-label", "Stop recording");
-  elements.stopBtn.disabled = false;
-}
-
-function stopRecording() {
-  if (recorder && recorder.state !== "inactive") {
-    recorder.stop();
-  }
-}
-
-function toggleRecording() {
-  if (recorder && recorder.state === "recording") {
-    stopRecording();
-  } else {
-    startRecording();
-  }
-}
-
-// ─── Groq Whisper transcription ─────────────────────────────
-
-async function transcribeAudio() {
-  if (!audioBlob) {
-    alert("Record an answer first.");
-    return;
-  }
-  const key = getGroqKey();
-  if (!key) {
-    setApiStatus("No API key provided. Add one to transcribe.");
-    return;
+    if (state.elements.recordTimer) state.elements.recordTimer.textContent = "00:00";
   }
 
-  setApiStatus("Sending audio to Groq Whisper...");
-  elements.transcribeBtn.disabled = true;
+  // Revoke whichever blob URL is currently held in state.audioUrl
+  // and detach it from the <audio> element. Safe to call when no
+  // URL is active. Every place that sets state.audioUrl to a new
+  // value goes through here first — that's how we plug the leak.
+  function revokeAudioUrl() {
+    if (state.audioUrl) {
+      try { URL.revokeObjectURL(state.audioUrl); } catch { /* already revoked */ }
+      state.audioUrl = null;
+    }
+    if (state.elements?.audioPlayer) {
+      state.elements.audioPlayer.removeAttribute("src");
+      state.elements.audioPlayer.load?.();
+    }
+  }
 
-  try {
-    const formData = new FormData();
-    const file = new File([audioBlob], "answer.webm", { type: audioBlob.type || "audio/webm" });
-    formData.append("file", file);
-    formData.append("model", "whisper-large-v3");
-    formData.append("language", "en");
-    formData.append("response_format", "json");
+  // ─── Draft persistence ──────────────────────────────────────
 
-    const response = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}` },
-      body: formData
+  function saveDraft() {
+    if (!state.currentQuestion) return;
+    const draft = {
+      questionId: state.currentQuestion.id,
+      transcript: state.elements.transcriptText.value,
+      feedback: state.feedback,
+      confidence: state.selectedConfidence,
+      level: state.elements.levelSelect.value,
+      category: state.elements.categorySelect.value,
+    };
+    try {
+      localStorage.setItem(STORAGE_KEYS.MOCK_DRAFT, JSON.stringify(draft));
+    } catch {
+      // localStorage may be full or unavailable; ignore.
+    }
+  }
+
+  function loadDraft() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.MOCK_DRAFT) || "null");
+    } catch {
+      return null;
+    }
+  }
+
+  function clearDraft() {
+    try { localStorage.removeItem(STORAGE_KEYS.MOCK_DRAFT); } catch { /* ignore */ }
+  }
+
+  // ─── Question selection ─────────────────────────────────────
+
+  function initLevelSelect() {
+    state.elements.levelSelect.innerHTML = INTERVIEW_LEVELS.map((level) => {
+      return `<option value="${level}">${level}</option>`;
+    }).join("");
+  }
+
+  function getCategoriesForLevel(level) {
+    if (level === "All") return INTERVIEW_CATEGORIES;
+    const available = new Set();
+    for (const q of INTERVIEW_QUESTIONS) {
+      if (q.level === level) available.add(q.category);
+    }
+    return ["All", ...INTERVIEW_CATEGORIES.filter((c) => c !== "All" && available.has(c))];
+  }
+
+  function initCategorySelect() {
+    const categories = getCategoriesForLevel(state.elements.levelSelect.value || "All");
+    state.elements.categorySelect.innerHTML = categories.map((cat) => {
+      return `<option value="${cat}">${cat}</option>`;
+    }).join("");
+  }
+
+  function getQuestionById(id) {
+    return INTERVIEW_QUESTIONS.find((q) => q.id === id);
+  }
+
+  function getQuestionsForSelectedFilters() {
+    const level = state.elements.levelSelect.value || "All";
+    const category = state.elements.categorySelect.value || "All";
+    return INTERVIEW_QUESTIONS.filter((q) => {
+      if (level !== "All" && q.level !== level) return false;
+      if (category !== "All" && q.category !== category) return false;
+      return true;
+    });
+  }
+
+  function setQuestion(question) {
+    state.currentQuestion = question;
+    state.elements.questionText.textContent = question.question;
+    state.elements.questionTip.textContent = question.tip;
+    state.elements.questionCategory.textContent = question.category;
+    state.elements.questionLevel.textContent = question.level;
+    state.elements.questionLevel.className = `tag ${levelTagClass(question.level)}`;
+    renderPracticeNotes(question);
+  }
+
+  function chooseRandomQuestion() {
+    const pool = getQuestionsForSelectedFilters();
+    if (!pool.length) return;
+    const question = pool[Math.floor(Math.random() * pool.length)];
+    setQuestion(question);
+    saveDraft();
+  }
+
+  function initQuestion() {
+    initLevelSelect();
+    initCategorySelect();
+
+    // URL parameter wins — explicit navigation starts a fresh session.
+    const params = new URLSearchParams(window.location.search);
+    const questionFromUrl = getQuestionById(params.get("q"));
+    if (questionFromUrl) {
+      clearDraft();
+      setQuestion(questionFromUrl);
+      return;
+    }
+
+    // Restore a draft if one exists.
+    const draft = loadDraft();
+    if (draft) {
+      const question = getQuestionById(draft.questionId);
+      if (question) {
+        if (draft.level && [...state.elements.levelSelect.options].some((o) => o.value === draft.level)) {
+          state.elements.levelSelect.value = draft.level;
+          initCategorySelect();
+        }
+        if (draft.category && [...state.elements.categorySelect.options].some((o) => o.value === draft.category)) {
+          state.elements.categorySelect.value = draft.category;
+        }
+        setQuestion(question);
+        if (draft.transcript) {
+          state.elements.transcriptText.value = draft.transcript;
+          updateWordCount();
+        }
+        if (draft.feedback) {
+          state.feedback = draft.feedback;
+          renderFeedback(draft.feedback);
+        }
+        if (draft.confidence) selectConfidence(draft.confidence);
+        return;
+      }
+    }
+
+    // No URL param, no usable draft — default to a beginner question.
+    setQuestion(
+      INTERVIEW_QUESTIONS.find((q) => q.level === "Beginner") || INTERVIEW_QUESTIONS[0]
+    );
+  }
+
+  // ─── Practice notes pull-through ────────────────────────────
+
+  function renderPracticeNotes(question) {
+    const { practiceNotesCard, practiceNotesContent } = state.elements;
+    if (!practiceNotesCard || !practiceNotesContent || !question) return;
+
+    let stored = {};
+    try {
+      stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRACTICE_NOTES) || "{}");
+    } catch {
+      stored = {};
+    }
+
+    const saved = stored[question.id];
+    const hasContent = saved && (saved.notes || saved.draft);
+
+    if (!hasContent) {
+      practiceNotesCard.classList.add("hidden");
+      return;
+    }
+
+    practiceNotesCard.classList.remove("hidden");
+    const parts = [];
+    if (saved.notes) {
+      parts.push(`<p class="kicker" style="margin-top:.6rem;">Notes</p>`);
+      parts.push(`<p class="muted" style="white-space:pre-wrap; margin-bottom:.4rem;">${escapeHtml(saved.notes)}</p>`);
+    }
+    if (saved.draft) {
+      parts.push(`<p class="kicker" style="margin-top:.85rem;">Draft answer</p>`);
+      parts.push(`<p class="muted" style="white-space:pre-wrap; margin-bottom:.4rem;">${escapeHtml(saved.draft)}</p>`);
+    }
+    practiceNotesContent.innerHTML = parts.join("");
+  }
+
+  // ─── Recording ──────────────────────────────────────────────
+
+  function getBestMimeType() {
+    const types = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
+    return types.find((type) => MediaRecorder.isTypeSupported(type)) || "";
+  }
+
+  async function startRecording() {
+    if (!navigator.mediaDevices || !window.MediaRecorder) {
+      alert("Your browser does not support microphone recording with MediaRecorder.");
+      return;
+    }
+
+    state.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    state.chunks = [];
+    state.audioBlob = null;
+
+    const mimeType = getBestMimeType();
+    state.recorder = new MediaRecorder(state.stream, mimeType ? { mimeType } : undefined);
+
+    state.recorder.addEventListener("dataavailable", (event) => {
+      if (event.data.size > 0) state.chunks.push(event.data);
     });
 
-    if (!response.ok) throw new Error(await response.text());
+    state.recorder.addEventListener("stop", () => {
+      state.audioBlob = new Blob(state.chunks, { type: state.recorder.mimeType || "audio/webm" });
 
-    const data = await response.json();
-    elements.transcriptText.value = data.text || "";
-    updateWordCount();
-    saveDraft();
-    setApiStatus("Transcript ready.");
-    if (elements.transcriptStatusText) elements.transcriptStatusText.textContent = "Transcribed.";
-  } catch (error) {
-    console.error(error);
-    setApiStatus("Transcription failed. Check your key, the console, or try a shorter recording.");
-  } finally {
-    elements.transcribeBtn.disabled = false;
-  }
-}
+      // ── Blob URL leak fix ──
+      // Revoke whatever URL is currently assigned to the player
+      // before creating the next one. Without this, every "stop"
+      // would orphan a Blob in memory; 50 takes in one session =
+      // 50 leaked blobs. revokeAudioUrl() is also called on
+      // clearSession() and on teardown so the cleanup happens at
+      // every exit point.
+      revokeAudioUrl();
 
-// ─── Groq Llama coaching feedback ───────────────────────────
+      state.audioUrl = URL.createObjectURL(state.audioBlob);
+      state.elements.audioPlayer.src = state.audioUrl;
+      state.elements.audioPlayer.classList.remove("hidden");
+      state.elements.transcribeBtn.disabled = false;
 
-function fallbackFeedback(transcript) {
-  const wordCount = transcript.trim().split(/\s+/).filter(Boolean).length;
-  return {
-    clarity: Math.min(9, Math.max(4, Math.round(wordCount / 18))),
-    structure: wordCount > 80 ? 7 : 5,
-    confidence: wordCount > 60 ? 7 : 5,
-    strength: "You gave enough context to start shaping this into a stronger interview answer.",
-    improve: "Add a clearer beginning, one specific technical detail, and a result at the end.",
-    strongerAnswer: "Use STAR: explain the situation, your task, the action you took, and the measurable result.",
-    confidenceTip: "Slow down slightly and end with a confident sentence about what you learned."
-  };
-}
+      state.stream?.getTracks().forEach((track) => track.stop());
+      state.stream = null;
+      stopTimer();
+      setStatus("Recording complete. Playback is ready.");
+      state.elements.recordBtn.classList.remove("is-recording");
+      state.elements.recordBtn.setAttribute("aria-label", "Start recording");
+      state.elements.stopBtn.disabled = true;
+    });
 
-async function requestFeedback() {
-  const transcript = elements.transcriptText.value.trim();
-  if (!transcript) {
-    alert("Add a transcript before requesting feedback.");
-    return;
-  }
-  const key = getGroqKey();
-  if (!key) {
-    setApiStatus("No API key provided. Add one to get feedback.");
-    return;
+    state.recorder.start();
+    startTimer();
+    setStatus("Recording... speak your answer.", "recording");
+    state.elements.recordBtn.classList.add("is-recording");
+    state.elements.recordBtn.setAttribute("aria-label", "Stop recording");
+    state.elements.stopBtn.disabled = false;
   }
 
-  setApiStatus("Sending transcript for AI feedback...");
-  elements.feedbackBtn.disabled = true;
+  function stopRecording() {
+    if (state.recorder && state.recorder.state !== "inactive") {
+      state.recorder.stop();
+    }
+  }
 
-  const promptText = `
-You are an interview coach for a ${currentQuestion.level} developer.
+  function toggleRecording() {
+    if (state.recorder && state.recorder.state === "recording") {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  }
+
+  // ─── Groq Whisper transcription ─────────────────────────────
+
+  async function transcribeAudio() {
+    if (!state.audioBlob) {
+      alert("Record an answer first.");
+      return;
+    }
+    const key = getGroqKey();
+    if (!key) {
+      setApiStatus("No API key provided. Add one to transcribe.");
+      return;
+    }
+
+    setApiStatus("Sending audio to Groq Whisper...");
+    state.elements.transcribeBtn.disabled = true;
+
+    try {
+      const formData = new FormData();
+      const file = new File([state.audioBlob], "answer.webm", { type: state.audioBlob.type || "audio/webm" });
+      formData.append("file", file);
+      formData.append("model", "whisper-large-v3");
+      formData.append("language", "en");
+      formData.append("response_format", "json");
+
+      const response = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}` },
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error(await response.text());
+
+      const data = await response.json();
+      state.elements.transcriptText.value = data.text || "";
+      updateWordCount();
+      saveDraft();
+      setApiStatus("Transcript ready.");
+      if (state.elements.transcriptStatusText) state.elements.transcriptStatusText.textContent = "Transcribed.";
+    } catch (error) {
+      console.error(error);
+      setApiStatus("Transcription failed. Check your key, the console, or try a shorter recording.");
+    } finally {
+      state.elements.transcribeBtn.disabled = false;
+    }
+  }
+
+  // ─── Coaching feedback ──────────────────────────────────────
+
+  function fallbackFeedback(transcript) {
+    const wordCount = transcript.trim().split(/\s+/).filter(Boolean).length;
+    return {
+      clarity: Math.min(9, Math.max(4, Math.round(wordCount / 18))),
+      structure: wordCount > 80 ? 7 : 5,
+      confidence: wordCount > 60 ? 7 : 5,
+      strength: "You gave enough context to start shaping this into a stronger interview answer.",
+      improve: "Add a clearer beginning, one specific technical detail, and a result at the end.",
+      strongerAnswer: "Use STAR: explain the situation, your task, the action you took, and the measurable result.",
+      confidenceTip: "Slow down slightly and end with a confident sentence about what you learned.",
+    };
+  }
+
+  async function requestFeedback() {
+    const transcript = state.elements.transcriptText.value.trim();
+    if (!transcript) {
+      alert("Add a transcript before requesting feedback.");
+      return;
+    }
+    const key = getGroqKey();
+    if (!key) {
+      setApiStatus("No API key provided. Add one to get feedback.");
+      return;
+    }
+
+    setApiStatus("Sending transcript for AI feedback...");
+    state.elements.feedbackBtn.disabled = true;
+
+    const promptText = `
+You are an interview coach for a ${state.currentQuestion.level} developer.
 Return ONLY valid JSON with these keys:
 clarity: number from 1 to 10
 structure: number from 1 to 10
@@ -452,187 +447,272 @@ improve: string
 strongerAnswer: string
 confidenceTip: string
 
-Question: ${currentQuestion.question}
-Category: ${currentQuestion.category}
-Level: ${currentQuestion.level}
+Question: ${state.currentQuestion.question}
+Category: ${state.currentQuestion.category}
+Level: ${state.currentQuestion.level}
 Transcript: ${transcript}
 `;
 
-  try {
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          {
-            role: "system",
-            content: "You are a direct but encouraging interview coach. You always respond with valid JSON only."
-          },
-          { role: "user", content: promptText }
-        ],
-        temperature: 0.4,
-        max_completion_tokens: 700,
-        response_format: { type: "json_object" }
-      })
-    });
+    try {
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            { role: "system", content: "You are a direct but encouraging interview coach. You always respond with valid JSON only." },
+            { role: "user", content: promptText },
+          ],
+          temperature: 0.4,
+          max_completion_tokens: 700,
+          response_format: { type: "json_object" },
+        }),
+      });
 
-    if (!response.ok) throw new Error(await response.text());
+      if (!response.ok) throw new Error(await response.text());
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "{}";
-    feedback = JSON.parse(content);
-    renderFeedback(feedback);
-    saveDraft();
-    setApiStatus("Feedback ready.");
-  } catch (error) {
-    console.error(error);
-    feedback = fallbackFeedback(transcript);
-    renderFeedback(feedback);
-    saveDraft();
-    setApiStatus("Live AI feedback failed, so a local fallback coaching note was generated.");
-  } finally {
-    elements.feedbackBtn.disabled = false;
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || "{}";
+      state.feedback = JSON.parse(content);
+      renderFeedback(state.feedback);
+      saveDraft();
+      setApiStatus("Feedback ready.");
+    } catch (error) {
+      console.error(error);
+      state.feedback = fallbackFeedback(transcript);
+      renderFeedback(state.feedback);
+      saveDraft();
+      setApiStatus("Live AI feedback failed, so a local fallback coaching note was generated.");
+    } finally {
+      state.elements.feedbackBtn.disabled = false;
+    }
   }
-}
 
-function renderFeedback(data) {
-  const clarity = Number(data.clarity) || 0;
-  const structure = Number(data.structure) || 0;
-  const confidence = Number(data.confidence) || 0;
+  function renderFeedback(data) {
+    const clarity = Number(data.clarity) || 0;
+    const structure = Number(data.structure) || 0;
+    const confidence = Number(data.confidence) || 0;
 
-  elements.clarityMeter.style.width = `${clarity * 10}%`;
-  elements.structureMeter.style.width = `${structure * 10}%`;
-  elements.confidenceMeter.style.width = `${confidence * 10}%`;
+    state.elements.clarityMeter.style.width = `${clarity * 10}%`;
+    state.elements.structureMeter.style.width = `${structure * 10}%`;
+    state.elements.confidenceMeter.style.width = `${confidence * 10}%`;
 
-  elements.clarityScore.textContent = clarity ? `${clarity}/10` : "—";
-  elements.structureScore.textContent = structure ? `${structure}/10` : "—";
-  elements.confidenceScore.textContent = confidence ? `${confidence}/10` : "—";
+    state.elements.clarityScore.textContent = clarity ? `${clarity}/10` : "—";
+    state.elements.structureScore.textContent = structure ? `${structure}/10` : "—";
+    state.elements.confidenceScore.textContent = confidence ? `${confidence}/10` : "—";
 
-  elements.strengthText.textContent = data.strength || "Feedback will appear here.";
-  elements.improveText.textContent = data.improve || "Record or paste a transcript first.";
-  elements.strongerAnswerText.textContent = data.strongerAnswer || "You'll get a clearer example direction after feedback runs.";
-  elements.confidenceTipText.textContent = data.confidenceTip || "You'll get one delivery tip.";
+    state.elements.strengthText.textContent = data.strength || "Feedback will appear here.";
+    state.elements.improveText.textContent = data.improve || "Record or paste a transcript first.";
+    state.elements.strongerAnswerText.textContent = data.strongerAnswer || "You'll get a clearer example direction after feedback runs.";
+    state.elements.confidenceTipText.textContent = data.confidenceTip || "You'll get one delivery tip.";
 
-  // Overall readiness = average of three scores, displayed as a percent
-  if (elements.overallReadiness) {
-    const readinessCard = document.querySelector(".readiness-card");
-    if (clarity || structure || confidence) {
-      const overall = Math.round(((clarity + structure + confidence) / 3) * 10);
-      elements.overallReadiness.textContent = `${overall}%`;
+    if (state.elements.overallReadiness) {
+      const readinessCard = document.querySelector(".readiness-card");
+      if (clarity || structure || confidence) {
+        const overall = Math.round(((clarity + structure + confidence) / 3) * 10);
+        state.elements.overallReadiness.textContent = `${overall}%`;
 
-      // Map percent → belt tier
-      let tier;
-      if (overall < 40) tier = "Needs Work";
-      else if (overall < 75) tier = "Almost Ready";
-      else tier = "Strong Answer";
+        let tier;
+        if (overall < 40) tier = "Needs Work";
+        else if (overall < 75) tier = "Almost Ready";
+        else tier = "Strong Answer";
 
-      // Auto-highlight the matching belt card (also sets selectedConfidence)
-      selectConfidence(tier);
+        selectConfidence(tier);
 
-      // Drive the brush bar fill width + arrow position + arrow color
-      if (readinessCard) {
-        readinessCard.dataset.tier = tier;
-        readinessCard.style.setProperty("--readiness-pct", `${overall}%`);
-        readinessCard.classList.add("has-readiness");
-      }
-    } else {
-      elements.overallReadiness.textContent = "—";
-      if (readinessCard) {
-        readinessCard.style.setProperty("--readiness-pct", "0%");
-        readinessCard.classList.remove("has-readiness");
-        delete readinessCard.dataset.tier;
+        if (readinessCard) {
+          readinessCard.dataset.tier = tier;
+          readinessCard.style.setProperty("--readiness-pct", `${overall}%`);
+          readinessCard.classList.add("has-readiness");
+        }
+      } else {
+        state.elements.overallReadiness.textContent = "—";
+        if (readinessCard) {
+          readinessCard.style.setProperty("--readiness-pct", "0%");
+          readinessCard.classList.remove("has-readiness");
+          delete readinessCard.dataset.tier;
+        }
       }
     }
   }
-}
 
-// ─── Confidence selection + save ────────────────────────────
+  // ─── Confidence + save ──────────────────────────────────────
 
-function selectConfidence(value) {
-  selectedConfidence = value;
-  document.querySelectorAll("[data-confidence]").forEach((button) => {
-    const isSelected = button.dataset.confidence === value;
-    button.classList.toggle("is-selected", isSelected);
-    button.classList.toggle("is-current", isSelected);
-  });
-  saveDraft();
-}
-
-function saveAnswer() {
-  const transcript = elements.transcriptText.value.trim();
-  if (!transcript) {
-    alert("Add a transcript before saving.");
-    return;
-  }
-  if (!selectedConfidence) {
-    alert("Choose a readiness level before saving.");
-    return;
+  function selectConfidence(value) {
+    state.selectedConfidence = value;
+    document.querySelectorAll("[data-confidence]").forEach((button) => {
+      const isSelected = button.dataset.confidence === value;
+      button.classList.toggle("is-selected", isSelected);
+      button.classList.toggle("is-current", isSelected);
+    });
+    saveDraft();
   }
 
-  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-  const entry = {
-    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
-    createdAt: new Date().toISOString(),
-    questionId: currentQuestion.id,
-    question: currentQuestion.question,
-    category: currentQuestion.category,
-    level: currentQuestion.level,
-    type: currentQuestion.type,
-    tip: currentQuestion.tip,
-    transcript,
-    feedback: feedback || fallbackFeedback(transcript),
-    confidence: selectedConfidence
+  function saveAnswer() {
+    const transcript = state.elements.transcriptText.value.trim();
+    if (!transcript) {
+      alert("Add a transcript before saving.");
+      return;
+    }
+    if (!state.selectedConfidence) {
+      alert("Choose a readiness level before saving.");
+      return;
+    }
+
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.SAVED_ANSWERS) || "[]");
+    const entry = {
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+      createdAt: new Date().toISOString(),
+      questionId: state.currentQuestion.id,
+      question: state.currentQuestion.question,
+      category: state.currentQuestion.category,
+      level: state.currentQuestion.level,
+      type: state.currentQuestion.type,
+      tip: state.currentQuestion.tip,
+      transcript,
+      feedback: state.feedback || fallbackFeedback(transcript),
+      confidence: state.selectedConfidence,
+    };
+
+    saved.push(entry);
+    localStorage.setItem(STORAGE_KEYS.SAVED_ANSWERS, JSON.stringify(saved));
+    clearDraft();
+    setApiStatus("Saved. Open the Saved page to review it.");
+    window.refreshSidebarStats?.();
+  }
+
+  function clearSession() {
+    state.chunks = [];
+    state.audioBlob = null;
+    state.feedback = null;
+    state.selectedConfidence = "";
+    document.querySelectorAll("[data-confidence]").forEach((button) => {
+      button.classList.remove("is-selected", "is-current");
+    });
+    revokeAudioUrl();
+    state.elements.audioPlayer.classList.add("hidden");
+    state.elements.transcriptText.value = "";
+    state.elements.transcribeBtn.disabled = true;
+    resetTimer();
+    updateWordCount();
+    setStatus("Ready to record.");
+    setApiStatus("");
+    renderFeedback({});
+    clearDraft();
+  }
+
+  // ─── Lifecycle ──────────────────────────────────────────────
+
+  function on(target, type, handler) {
+    if (!target) return;
+    target.addEventListener(type, handler);
+    state.listeners.push([target, type, handler]);
+  }
+
+  window.initMock = function initMock() {
+    state.elements = {
+      levelSelect: document.querySelector("#levelSelect"),
+      categorySelect: document.querySelector("#categorySelect"),
+      newQuestionBtn: document.querySelector("#newQuestionBtn"),
+      questionText: document.querySelector("#questionText"),
+      questionTip: document.querySelector("#questionTip"),
+      questionCategory: document.querySelector("#questionCategory"),
+      questionLevel: document.querySelector("#questionLevel"),
+      recordBtn: document.querySelector("#recordBtn"),
+      stopBtn: document.querySelector("#stopBtn"),
+      clearBtn: document.querySelector("#clearBtn"),
+      recordingStatus: document.querySelector("#recordingStatus"),
+      statusDot: document.querySelector("#statusDot"),
+      recordTimer: document.querySelector("#recordTimer"),
+      audioPlayer: document.querySelector("#audioPlayer"),
+      transcriptText: document.querySelector("#transcriptText"),
+      transcriptStatusText: document.querySelector("#transcriptStatusText"),
+      wordCount: document.querySelector("#wordCount"),
+      transcribeBtn: document.querySelector("#transcribeBtn"),
+      feedbackBtn: document.querySelector("#feedbackBtn"),
+      apiStatus: document.querySelector("#apiStatus"),
+      saveBtn: document.querySelector("#saveBtn"),
+      strengthText: document.querySelector("#strengthText"),
+      improveText: document.querySelector("#improveText"),
+      strongerAnswerText: document.querySelector("#strongerAnswerText"),
+      confidenceTipText: document.querySelector("#confidenceTipText"),
+      clarityMeter: document.querySelector("#clarityMeter"),
+      structureMeter: document.querySelector("#structureMeter"),
+      confidenceMeter: document.querySelector("#confidenceMeter"),
+      clarityScore: document.querySelector("#clarityScore"),
+      structureScore: document.querySelector("#structureScore"),
+      confidenceScore: document.querySelector("#confidenceScore"),
+      overallReadiness: document.querySelector("#overallReadiness"),
+      practiceNotesCard: document.querySelector("#practiceNotesCard"),
+      practiceNotesContent: document.querySelector("#practiceNotesContent"),
+    };
+
+    if (!state.elements.recordBtn || !state.elements.transcriptText) return; // not on mock page
+
+    state.currentQuestion = null;
+    state.recorder = null;
+    state.stream = null;
+    state.chunks = [];
+    state.audioBlob = null;
+    state.audioUrl = null;
+    state.selectedConfidence = "";
+    state.feedback = null;
+    state.timerInterval = null;
+    state.timerStartedAt = null;
+    state.listeners = [];
+
+    // Belt cards (readiness pickers) — delegated click handler.
+    on(document, "click", (event) => {
+      const card = event.target.closest("[data-confidence]");
+      if (!card) return;
+      // Only count clicks on belt cards in the readiness section,
+      // not on the saved page's confidence filter chips.
+      if (!card.closest(".belt-grid")) return;
+      selectConfidence(card.dataset.confidence);
+    });
+
+    on(state.elements.newQuestionBtn, "click", chooseRandomQuestion);
+    on(state.elements.levelSelect, "change", () => {
+      initCategorySelect();
+      chooseRandomQuestion();
+    });
+    on(state.elements.categorySelect, "change", chooseRandomQuestion);
+    on(state.elements.recordBtn, "click", toggleRecording);
+    on(state.elements.stopBtn, "click", stopRecording);
+    on(state.elements.clearBtn, "click", clearSession);
+    on(state.elements.transcribeBtn, "click", transcribeAudio);
+    on(state.elements.feedbackBtn, "click", requestFeedback);
+    on(state.elements.saveBtn, "click", saveAnswer);
+    on(state.elements.transcriptText, "input", () => {
+      updateWordCount();
+      saveDraft();
+    });
+
+    initQuestion();
+    updateWordCount();
   };
 
-  saved.push(entry);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
-  clearDraft();
-  setApiStatus("Saved. Open the Saved page to review it.");
-  if (typeof window.refreshSidebarStats === "function") window.refreshSidebarStats();
-}
+  window.teardownMock = function teardownMock() {
+    // Stop any in-flight recording cleanly so the mic light goes
+    // off when the user navigates away.
+    try {
+      if (state.recorder && state.recorder.state !== "inactive") state.recorder.stop();
+    } catch { /* ignore */ }
+    state.stream?.getTracks?.().forEach((track) => track.stop());
+    state.stream = null;
 
-function clearSession() {
-  chunks = [];
-  audioBlob = null;
-  feedback = null;
-  selectedConfidence = "";
-  document.querySelectorAll("[data-confidence]").forEach((button) => {
-    button.classList.remove("is-selected", "is-current");
-  });
-  elements.audioPlayer.removeAttribute("src");
-  elements.audioPlayer.classList.add("hidden");
-  elements.transcriptText.value = "";
-  elements.transcribeBtn.disabled = true;
-  resetTimer();
-  updateWordCount();
-  setStatus("Ready to record.");
-  setApiStatus("");
-  renderFeedback({});
-  clearDraft();
-}
+    revokeAudioUrl();
+    stopTimer();
 
-// ─── Event wiring ───────────────────────────────────────────
+    state.listeners.forEach(([target, type, handler]) => target?.removeEventListener(type, handler));
+    state.listeners = [];
 
-elements.newQuestionBtn.addEventListener("click", chooseRandomQuestion);
-elements.levelSelect.addEventListener("change", () => {
-  initCategorySelect();
-  chooseRandomQuestion();
-});
-elements.categorySelect.addEventListener("change", chooseRandomQuestion);
-elements.recordBtn.addEventListener("click", toggleRecording);
-elements.stopBtn.addEventListener("click", stopRecording);
-elements.clearBtn.addEventListener("click", clearSession);
-elements.transcribeBtn.addEventListener("click", transcribeAudio);
-elements.feedbackBtn.addEventListener("click", requestFeedback);
-elements.saveBtn.addEventListener("click", saveAnswer);
-elements.transcriptText.addEventListener("input", () => {
-  updateWordCount();
-  saveDraft();
-});
-
-initQuestion();
-updateWordCount();
+    state.recorder = null;
+    state.elements = null;
+    state.currentQuestion = null;
+    state.audioBlob = null;
+    state.chunks = [];
+  };
+})();
