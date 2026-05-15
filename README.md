@@ -111,17 +111,11 @@ Groq API key — see below.
 
 ## How the API key works
 
-The app calls Groq directly from the browser. Two ways to provide the key:
+The app calls Groq directly from the browser. 
 
-1. **Use the in-browser prompt.** First time you click "Transcribe" or "Get AI
+  **Use the in-browser prompt.** First time you click "Transcribe" or "Get AI
    ideas," the app prompts for a key and stashes it in `localStorage` for that
    browser. **Recommended.** Nothing on disk, nothing in git.
-2. **Edit `js/config.js`.** Paste your key between the quotes. This file is
-   checked in as an empty stub. If you put a key in it locally, treat the file
-   the way you would a `.env` — don't commit it.
-
-A copy of the empty stub lives at `js/config.example.js` in case you ever wipe
-`config.js` and need to restore it.
 
 > **Phase 2 plan:** move all Groq calls behind a backend proxy. Keys in the
 > browser are a deliberate Phase-1 trade-off for fastest local iteration; not
@@ -142,8 +136,6 @@ interview-armor/
 │
 ├── js/
 │   ├── storage-keys.js     # One frozen object — every localStorage key
-│   ├── config.js           # window.GROQ_API_KEY (empty stub by default)
-│   ├── config.example.js   # Template, copy if config.js is wiped
 │   ├── questions.js        # The question bank + level/category lists
 │   ├── practice.js         # initPractice() / teardownPractice()
 │   ├── mock.js             # initMock() / teardownMock()
