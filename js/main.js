@@ -6,6 +6,22 @@
 // Streak, Sessions, Accuracy). Sidebar refresh is also exposed
 // on window so the SPA router can call it after navigation.
 
+// ─── HTTPS guard ────────────────────────────────────────────
+// If someone loads the deployed site over plain HTTP, redirect
+// them to HTTPS immediately. The user's Groq key flows through
+// fetch headers, and HTTP would let it be sniffed on the wire.
+// Skipped for localhost so local dev (python3 -m http.server)
+// still works.
+(function enforceHttps() {
+  const isLocal =
+    location.hostname === "localhost" ||
+    location.hostname === "127.0.0.1" ||
+    location.hostname === "";
+  if (location.protocol === "http:" && !isLocal) {
+    location.replace("https://" + location.host + location.pathname + location.search);
+  }
+})();
+
 // ─── Mobile nav drawer ──────────────────────────────────────
 const navToggle = document.querySelector("[data-nav-toggle]");
 const mainNav = document.querySelector("[data-main-nav]");
@@ -161,3 +177,28 @@ window.addEventListener("storage", (event) => {
 // the router (after any navigation) can refresh the sidebar in
 // the current tab.
 window.refreshSidebarStats = refreshSidebarStats;
+
+// ─── Clear stored Groq key ──────────────────────────────────
+// Document-level delegated listener so it works whether the
+// About page was loaded directly or swapped in by the SPA
+// router. Confirms before deletion to prevent stray clicks.
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-clear-key]");
+  if (!button) return;
+
+  const status = document.querySelector("[data-clear-key-status]");
+  const hasKey = !!localStorage.getItem(STORAGE_KEYS.GROQ_KEY);
+
+  if (!hasKey) {
+    if (status) status.textContent = "No key stored in this browser.";
+    return;
+  }
+
+  const confirmed = confirm(
+    "Remove your Groq API key from this browser? You'll be prompted again the next time you transcribe or request feedback."
+  );
+  if (!confirmed) return;
+
+  localStorage.removeItem(STORAGE_KEYS.GROQ_KEY);
+  if (status) status.textContent = "Key cleared.";
+});

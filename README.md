@@ -51,6 +51,9 @@ audio sent to Groq for transcription and the transcript sent for coaching.
 - **Dojo sidebar stats.** Today's focus, current streak, sessions this week,
   rolling accuracy — computed from saved sessions, live-updates after every
   save or delete.
+- **Clear your key on demand.** A "Forget my key" button on the About page
+  removes the stored Groq key from this browser's `localStorage`. You'll be
+  re-prompted on your next transcription or AI request.
 
 ## Stack
 
@@ -116,6 +119,11 @@ The app calls Groq directly from the browser.
   **Use the in-browser prompt.** First time you click "Transcribe" or "Get AI
    ideas," the app prompts for a key and stashes it in `localStorage` for that
    browser. **Recommended.** Nothing on disk, nothing in git.
+
+**Removing the key.** The About page has a "Forget my key" button that wipes
+the stored key from `localStorage` after a confirmation dialog. Use it when
+you rotate keys, want to re-test the first-time prompt flow, or hand the
+browser off to someone else.
 
 > **Phase 2 plan:** move all Groq calls behind a backend proxy. Keys in the
 > browser are a deliberate Phase-1 trade-off for fastest local iteration; not
@@ -219,6 +227,14 @@ save or delete (or any nav), `window.refreshSidebarStats()` re-reads
 Each HTML page is a real, navigable file. Direct loads, bookmarks, browser
 refresh, and "open in new tab" all land on a working page. The router is an
 enhancement, not a requirement.
+
+### HTTPS-only in production
+`main.js` runs an immediate redirect at the very top of the file: if the page
+loaded over plain `http://` on anything that isn't `localhost` / `127.0.0.1`,
+it replaces the URL with the `https://` equivalent before any other code
+runs. The Groq key flows through fetch headers, and HTTP would let it be
+sniffed in transit. Local dev (e.g. `python3 -m http.server`) is exempt so
+loopback workflows still work.
 
 ## Browser support
 
