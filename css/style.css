@@ -6,7 +6,7 @@
 :root {
   --ink: hsl(32, 13%, 10%);
   --ink-soft: hsl(31, 12%, 25%);
-  --muted: hsl(31, 9%, 44%);
+  --muted: hsl(31, 9%, 40%);
   --paper: #f2e8de;
   --paper-deep: #f2e8de;
   --paper-card: #f2e8de;
@@ -15,6 +15,7 @@
   --crimson: hsl(358, 70%, 33%);
   --crimson-dark: hsl(358, 65%, 24%);
   --bronze: hsl(39, 67%, 36%);
+  --bronze-text: hsl(39, 67%, 32%);
   --sage: hsl(137, 28%, 25%);
   --sage-soft: hsl(137, 24%, 88%);
   --gold-soft: hsl(42, 76%, 87%);
@@ -558,7 +559,7 @@ h3 {
 }
 
 .tag-bronze {
-  color: var(--bronze);
+  color: var(--bronze-text);
   border-color: hsla(39, 67%, 36%, .3);
 }
 
@@ -1418,7 +1419,7 @@ h3 {
 
 .score-number {
   justify-self: end;
-  color: var(--bronze);
+  color: var(--bronze-text);
   font-family: Georgia, "Times New Roman", serif;
   font-size: 1.5rem;
   font-weight: 700;
@@ -2035,7 +2036,7 @@ h3 {
 }
 
 .confidence-pill-bronze {
-  color: var(--bronze);
+  color: var(--bronze-text);
   border-color: color-mix(in srgb, var(--bronze) 50%, transparent);
   background: color-mix(in srgb, var(--bronze) 12%, hsla(43, 66%, 96%, .66));
 }

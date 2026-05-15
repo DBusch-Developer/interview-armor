@@ -1,7 +1,3 @@
-# Phase 1 keeps the Groq key in plain JS for browser convenience.
-# Never commit it.
-js/config.js
-
 # OS / editor
 .DS_Store
 Thumbs.db

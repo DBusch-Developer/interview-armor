@@ -13,8 +13,24 @@
 // load on any page; nothing runs until the router calls it.
 
 (function () {
+  // Web Speech API — available on Chrome, Edge, Safari. Firefox doesn't
+  // implement it (or hides it behind a flag). We use it as the primary
+  // transcription method when present, and silently fall back to Whisper
+  // on stop when it isn't — that way Firefox users still get a working
+  // experience, just not the live-typing visual.
+  const SpeechRecognitionCtor =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+  const LIVE_SUPPORTED = !!SpeechRecognitionCtor;
+
   // Per-page state. Scoped to this IIFE so we can reset it
   // cleanly on every init() without leaking to window.
+  //
+  // A few fields (audioBlob, audioUrl, chunks, audioForQuestion) are
+  // intentionally NOT reset by init/teardown — they survive SPA navigation
+  // so a recording made on the mock page is still available when the user
+  // visits Practice or Saved and comes back. They're only cleared by
+  // clearSession(), by switching to a different question, or by an actual
+  // page refresh (which the beforeunload prompt guards against).
   const state = {
     elements: null,
     currentQuestion: null,
@@ -24,12 +40,17 @@
     audioBlob: null,
     audioUrl: null,           // the *current* blob URL, tracked
                               // so we can revoke before replacing it
+    audioForQuestion: null,   // question id the current audio was recorded for
     selectedConfidence: "",
     feedback: null,
     timerInterval: null,
     timerStartedAt: null,
     listeners: [],            // for teardown
     isWired: false,
+    // Live transcription state
+    recognition: null,             // active SpeechRecognition instance
+    liveFinalText: "",             // confirmed text accumulated this take
+    liveFallbackToWhisper: false,  // set true on SR error -> Whisper on stop
   };
 
   // ─── Groq key ───────────────────────────────────────────────
@@ -199,6 +220,13 @@
     state.elements.questionLevel.textContent = question.level;
     state.elements.questionLevel.className = `tag ${levelTagClass(question.level)}`;
     renderPracticeNotes(question);
+    // Persist the question selection itself. Previously this only happened
+    // in chooseRandomQuestion, which meant landing on mock.html?q=xxx from
+    // the practice page never saved the draft — navigating away and back
+    // then fell through to the "first Beginner question" fallback. Now any
+    // setQuestion call (URL param, draft restore, fallback, random pick)
+    // writes the current question to localStorage so SPA nav can find it.
+    saveDraft();
   }
 
   function chooseRandomQuestion() {
@@ -206,24 +234,36 @@
     if (!pool.length) return;
     const question = pool[Math.floor(Math.random() * pool.length)];
     setQuestion(question);
-    saveDraft();
   }
 
   function initQuestion() {
     initLevelSelect();
     initCategorySelect();
 
-    // URL parameter wins — explicit navigation starts a fresh session.
+    // Pull the draft up front; we need to compare it with whatever the URL
+    // says before deciding which path wins.
+    const draft = loadDraft();
     const params = new URLSearchParams(window.location.search);
     const questionFromUrl = getQuestionById(params.get("q"));
+
     if (questionFromUrl) {
-      clearDraft();
-      setQuestion(questionFromUrl);
-      return;
+      // The URL says "be on question X." If the existing draft is *also* for
+      // question X, that means this is either a refresh of the same page or
+      // a return to the same question — preserve the in-progress work.
+      // If the draft is for a different question, the user navigated here
+      // explicitly (e.g. "Practice This" on a different question, or
+      // "Practice Again" from Saved) — wipe and start fresh.
+      const draftMatchesUrl = draft && draft.questionId === questionFromUrl.id;
+      if (!draftMatchesUrl) {
+        clearDraft();
+        setQuestion(questionFromUrl);
+        return;
+      }
+      // Fall through to the draft-restore path below using `draft`.
     }
 
-    // Restore a draft if one exists.
-    const draft = loadDraft();
+    // Restore a draft if one exists (covers two cases now: no URL param,
+    // or URL param that matches what's already saved as a draft).
     if (draft) {
       const question = getQuestionById(draft.questionId);
       if (question) {
@@ -295,6 +335,85 @@
     return types.find((type) => MediaRecorder.isTypeSupported(type)) || "";
   }
 
+  // ─── Live transcription via Web Speech API ──────────────────
+  // Web Speech runs alongside MediaRecorder. It fires `result` events as
+  // the user speaks; we write into the transcript textarea in real time.
+  // Interim results (the engine's guess-in-progress) are appended to the
+  // final-so-far text and re-rendered on every event, so the user sees
+  // text appear letter-by-letter the way Google Docs voice typing does.
+  //
+  // continuous=true means recognition keeps listening through pauses
+  // rather than auto-ending after the first phrase. interimResults=true
+  // means we get the live "typing" effect instead of waiting for end-of-
+  // sentence finalization.
+
+  function startLiveTranscription() {
+    if (!LIVE_SUPPORTED) return;
+
+    state.liveFinalText = "";
+    state.liveFallbackToWhisper = false;
+
+    const recognition = new SpeechRecognitionCtor();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+
+    recognition.addEventListener("result", (event) => {
+      let interim = "";
+      // event.resultIndex marks where new results begin in this event.
+      // Anything before it has already been processed in earlier events.
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) {
+          state.liveFinalText += result[0].transcript;
+        } else {
+          interim += result[0].transcript;
+        }
+      }
+      if (state.elements?.transcriptText) {
+        state.elements.transcriptText.value = state.liveFinalText + interim;
+        updateWordCount();
+        saveDraft();
+      }
+    });
+
+    recognition.addEventListener("error", (event) => {
+      // 'no-speech' fires when the user is silent for a few seconds — this
+      // is normal, recognition restarts itself via the 'end' handler.
+      // 'aborted' fires on intentional stop. Everything else (network,
+      // not-allowed, audio-capture, service-not-allowed) means live
+      // transcription is dead for this take; flag for Whisper fallback.
+      if (event.error !== "no-speech" && event.error !== "aborted") {
+        console.error("SpeechRecognition error:", event.error);
+        state.liveFallbackToWhisper = true;
+      }
+    });
+
+    recognition.addEventListener("end", () => {
+      // Recognition can auto-end on silence even with continuous=true. If
+      // the user is still recording, restart it. If they stopped or we hit
+      // an unrecoverable error, leave it dead.
+      const stillRecording = state.recorder && state.recorder.state === "recording";
+      if (stillRecording && !state.liveFallbackToWhisper) {
+        try { recognition.start(); } catch { /* already running, ignore */ }
+      }
+    });
+
+    try {
+      recognition.start();
+      state.recognition = recognition;
+    } catch (err) {
+      console.error("Failed to start SpeechRecognition:", err);
+      state.liveFallbackToWhisper = true;
+    }
+  }
+
+  function stopLiveTranscription() {
+    if (!state.recognition) return;
+    try { state.recognition.stop(); } catch { /* ignore */ }
+    state.recognition = null;
+  }
+
   async function startRecording() {
     if (!navigator.mediaDevices || !window.MediaRecorder) {
       alert("Your browser does not support microphone recording with MediaRecorder.");
@@ -308,39 +427,83 @@
     const mimeType = getBestMimeType();
     state.recorder = new MediaRecorder(state.stream, mimeType ? { mimeType } : undefined);
 
+    // Capture mime type and question id locally — the stop event can fire
+    // *after* teardownMock has run (e.g. user clicked "Practice" mid-take),
+    // at which point state.recorder is null and state.currentQuestion is too.
+    // Closures keep these values alive regardless.
+    const recorderMimeType = state.recorder.mimeType || "audio/webm";
+    const questionAtStart = state.currentQuestion?.id ?? null;
+
     state.recorder.addEventListener("dataavailable", (event) => {
       if (event.data.size > 0) state.chunks.push(event.data);
     });
 
     state.recorder.addEventListener("stop", () => {
-      state.audioBlob = new Blob(state.chunks, { type: state.recorder.mimeType || "audio/webm" });
+      state.audioBlob = new Blob(state.chunks, { type: recorderMimeType });
+      state.audioForQuestion = questionAtStart;
 
       // ── Blob URL leak fix ──
       // Revoke whatever URL is currently assigned to the player
       // before creating the next one. Without this, every "stop"
       // would orphan a Blob in memory; 50 takes in one session =
       // 50 leaked blobs. revokeAudioUrl() is also called on
-      // clearSession() and on teardown so the cleanup happens at
-      // every exit point.
+      // clearSession() so the cleanup happens at every exit point.
       revokeAudioUrl();
-
       state.audioUrl = URL.createObjectURL(state.audioBlob);
-      state.elements.audioPlayer.src = state.audioUrl;
-      state.elements.audioPlayer.classList.remove("hidden");
-      state.elements.transcribeBtn.disabled = false;
+
+      // Stop the live transcriber first; any in-flight final results will
+      // have already landed in the textarea via the 'result' handler.
+      stopLiveTranscription();
 
       state.stream?.getTracks().forEach((track) => track.stop());
       state.stream = null;
       stopTimer();
-      setStatus("Recording complete. Playback is ready.");
-      state.elements.recordBtn.classList.remove("is-recording");
-      state.elements.recordBtn.setAttribute("aria-label", "Start recording");
-      state.elements.stopBtn.disabled = true;
+
+      // UI updates only when the mock page is still mounted. If the user
+      // navigated to Practice/Saved while recording, teardownMock has
+      // already nulled state.elements; the audio blob is preserved in
+      // state and will be re-attached when they come back to mock.
+      if (state.elements) {
+        state.elements.audioPlayer.src = state.audioUrl;
+        state.elements.audioPlayer.classList.remove("hidden");
+        state.elements.recordBtn.classList.remove("is-recording");
+        state.elements.recordBtn.setAttribute("aria-label", "Start recording");
+        state.elements.stopBtn.disabled = true;
+        // Audio exists, so the re-transcribe button is now useful.
+        state.elements.transcribeBtn.disabled = false;
+
+        // Decide whether to call Whisper as a backup. Live succeeded if
+        // the browser supports it AND no error flag was set during the
+        // take. Otherwise (Firefox, or live errored mid-take), Whisper
+        // transcribes the recorded audio.
+        const liveWorked = LIVE_SUPPORTED && !state.liveFallbackToWhisper;
+        if (liveWorked) {
+          setStatus("Recording complete. Transcript ready.");
+          // Persist what live just produced.
+          saveDraft();
+        } else {
+          setStatus("Recording complete. Transcribing...");
+          transcribeAudio();
+        }
+      }
     });
 
     state.recorder.start();
     startTimer();
-    setStatus("Recording... speak your answer.", "recording");
+
+    // Live mode: clear whatever's in the textarea so the live results
+    // don't get glued onto stale text. Then start SpeechRecognition. If
+    // it's not supported (Firefox), we just skip it — Whisper will run on
+    // stop as the fallback.
+    if (LIVE_SUPPORTED) {
+      state.elements.transcriptText.value = "";
+      updateWordCount();
+      startLiveTranscription();
+      setStatus("Recording... speak and watch the transcript appear.", "recording");
+    } else {
+      setStatus("Recording... speak your answer.", "recording");
+    }
+
     state.elements.recordBtn.classList.add("is-recording");
     state.elements.recordBtn.setAttribute("aria-label", "Stop recording");
     state.elements.stopBtn.disabled = false;
@@ -350,6 +513,10 @@
     if (state.recorder && state.recorder.state !== "inactive") {
       state.recorder.stop();
     }
+    // The recorder's 'stop' handler also calls stopLiveTranscription, but
+    // calling it here too gives an instant UI shutoff — recognition stops
+    // emitting interim text the moment the user clicks stop.
+    stopLiveTranscription();
   }
 
   function toggleRecording() {
@@ -402,7 +569,10 @@
       console.error(error);
       setApiStatus("Transcription failed. Check your key, the console, or try a shorter recording.");
     } finally {
-      state.elements.transcribeBtn.disabled = false;
+      // Re-enable so the user can retry if they want.
+      if (state.elements?.transcribeBtn && state.audioBlob) {
+        state.elements.transcribeBtn.disabled = false;
+      }
     }
   }
 
@@ -578,7 +748,11 @@ Transcript: ${transcript}
 
     saved.push(entry);
     localStorage.setItem(STORAGE_KEYS.SAVED_ANSWERS, JSON.stringify(saved));
-    clearDraft();
+    // Don't clearDraft() — the user just spent effort on this question and
+    // we don't want navigating away and back to dump them on a random
+    // Beginner question. Re-save the current state so the draft stays in
+    // sync with what's on screen.
+    saveDraft();
     setApiStatus("Saved. Open the Saved page to review it.");
     window.refreshSidebarStats?.();
   }
@@ -586,6 +760,7 @@ Transcript: ${transcript}
   function clearSession() {
     state.chunks = [];
     state.audioBlob = null;
+    state.audioForQuestion = null;
     state.feedback = null;
     state.selectedConfidence = "";
     document.querySelectorAll("[data-confidence]").forEach((button) => {
@@ -600,7 +775,9 @@ Transcript: ${transcript}
     setStatus("Ready to record.");
     setApiStatus("");
     renderFeedback({});
-    clearDraft();
+    // Save the cleared state (question intact) instead of clearDraft so the
+    // user stays on the same question after navigating away and back.
+    saveDraft();
   }
 
   // ─── Lifecycle ──────────────────────────────────────────────
@@ -654,14 +831,13 @@ Transcript: ${transcript}
     state.currentQuestion = null;
     state.recorder = null;
     state.stream = null;
-    state.chunks = [];
-    state.audioBlob = null;
-    state.audioUrl = null;
     state.selectedConfidence = "";
     state.feedback = null;
     state.timerInterval = null;
     state.timerStartedAt = null;
     state.listeners = [];
+    // Intentionally NOT reset on every init — these survive SPA navigation:
+    //   state.audioBlob, state.audioUrl, state.chunks, state.audioForQuestion
 
     // Belt cards (readiness pickers) — delegated click handler.
     on(document, "click", (event) => {
@@ -690,20 +866,74 @@ Transcript: ${transcript}
       saveDraft();
     });
 
+    // Warn before refresh/close/back if there's anything ephemeral about
+    // to be lost. Two cases:
+    //   1. Mid-recording — the active take dies on refresh.
+    //   2. Audio in memory — the blob is JS-only; a refresh wipes it even
+    //      if the transcript has already been saved to the draft.
+    // Transcript and feedback are already in localStorage via saveDraft,
+    // so they DO survive refresh — but the audio file does not, and the
+    // user may still want it for playback. Better to warn.
+    // Modern browsers ignore custom messages and show a standard prompt,
+    // so we just need preventDefault + returnValue to trigger it.
+    on(window, "beforeunload", (event) => {
+      const recording = state.recorder && state.recorder.state === "recording";
+      const hasAudio = state.audioBlob !== null;
+      if (recording || hasAudio) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    });
+
     initQuestion();
     updateWordCount();
+
+    // Restore audio from a previous mount if it's still for the current
+    // question. SPA nav: user records, navigates to Practice, comes back —
+    // the audio is still here. Different question (e.g. they used
+    // "Practice Again" on a saved entry): discard the stale blob so we
+    // don't claim a recording belongs to a question it doesn't.
+    if (state.audioBlob && state.audioForQuestion === state.currentQuestion?.id) {
+      // Re-create the object URL if it was revoked, otherwise just rebind
+      // it to the new audio element.
+      if (!state.audioUrl) {
+        state.audioUrl = URL.createObjectURL(state.audioBlob);
+      }
+      state.elements.audioPlayer.src = state.audioUrl;
+      state.elements.audioPlayer.classList.remove("hidden");
+      // Audio is back in scope — the user can re-run it through Whisper if
+      // they want a more accurate transcript than what live captured.
+      state.elements.transcribeBtn.disabled = false;
+
+      // Edge case: user recorded, navigated away before auto-transcribe
+      // could run (teardown's elements-null check blocked it), now they're
+      // back. Kick off transcription now if we don't already have one.
+      if (!state.elements.transcriptText.value.trim()) {
+        setStatus("Resumed recording. Transcribing...");
+        transcribeAudio();
+      }
+    } else if (state.audioBlob) {
+      // Stale — wrong question. Clean up so the next recording starts fresh.
+      revokeAudioUrl();
+      state.audioBlob = null;
+      state.chunks = [];
+      state.audioForQuestion = null;
+    }
   };
 
   window.teardownMock = function teardownMock() {
     // Stop any in-flight recording cleanly so the mic light goes
-    // off when the user navigates away.
+    // off when the user navigates away. The stop event will fire
+    // asynchronously after this teardown completes; its handler is
+    // guarded against missing state.elements, and the resulting
+    // audioBlob lands in state for when the user comes back.
     try {
       if (state.recorder && state.recorder.state !== "inactive") state.recorder.stop();
     } catch { /* ignore */ }
+    stopLiveTranscription();
     state.stream?.getTracks?.().forEach((track) => track.stop());
     state.stream = null;
 
-    revokeAudioUrl();
     stopTimer();
 
     state.listeners.forEach(([target, type, handler]) => target?.removeEventListener(type, handler));
@@ -712,7 +942,8 @@ Transcript: ${transcript}
     state.recorder = null;
     state.elements = null;
     state.currentQuestion = null;
-    state.audioBlob = null;
-    state.chunks = [];
+    // Preserved across SPA nav (cleared only by clearSession, by switching
+    // to a different question on re-mount, or by a full page refresh):
+    //   state.audioBlob, state.audioUrl, state.chunks, state.audioForQuestion
   };
 })();
