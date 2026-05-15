@@ -793,6 +793,7 @@ h3 {
   padding: .9rem .7rem;
   background: hsla(43, 66%, 96%, .6);
   text-align: center;
+  cursor: default;
 }
 
 .belt {

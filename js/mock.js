@@ -233,7 +233,34 @@
     const pool = getQuestionsForSelectedFilters();
     if (!pool.length) return;
     const question = pool[Math.floor(Math.random() * pool.length)];
+    // Reset the previous question's answer state before switching — its
+    // transcript, audio, feedback, and belt highlight don't apply to the
+    // new question. Order matters: reset first, then setQuestion (which
+    // calls saveDraft on the fresh state).
+    resetAnswerState();
     setQuestion(question);
+  }
+
+  // Reset all "this question's answer" state: audio, transcript, feedback,
+  // and the belt highlight. Used when picking a new random question (the
+  // prior take's stuff doesn't apply) and as the core of clearSession
+  // (which adds timer/status resets and a saveDraft on top).
+  function resetAnswerState() {
+    state.chunks = [];
+    state.audioBlob = null;
+    state.audioForQuestion = null;
+    state.feedback = null;
+    state.selectedConfidence = "";
+    revokeAudioUrl();
+    if (state.elements) {
+      state.elements.audioPlayer.classList.add("hidden");
+      state.elements.transcriptText.value = "";
+      state.elements.transcribeBtn.disabled = true;
+      updateWordCount();
+      // renderFeedback({}) clears the meters, readiness %, and belt
+      // highlight via its no-scores branch.
+      renderFeedback({});
+    }
   }
 
   function initQuestion() {
@@ -283,7 +310,10 @@
           state.feedback = draft.feedback;
           renderFeedback(draft.feedback);
         }
-        if (draft.confidence) selectConfidence(draft.confidence);
+        // Only restore confidence when feedback is also present. Without
+        // backing scores, the belt highlight would be a stale leftover
+        // from when users could click the belts manually.
+        if (draft.confidence && draft.feedback) selectConfidence(draft.confidence);
         return;
       }
     }
@@ -704,6 +734,14 @@ Transcript: ${transcript}
           readinessCard.classList.remove("has-readiness");
           delete readinessCard.dataset.tier;
         }
+        // No scores -> no readiness tier. Clear the belt highlight and the
+        // stored confidence so the UI doesn't claim a tier the AI didn't
+        // give. This is the single source of truth — anywhere that wants
+        // to clear the belts calls renderFeedback({}).
+        state.selectedConfidence = "";
+        document.querySelectorAll(".belt-grid [data-confidence]").forEach((card) => {
+          card.classList.remove("is-selected", "is-current");
+        });
       }
     }
   }
@@ -727,7 +765,7 @@ Transcript: ${transcript}
       return;
     }
     if (!state.selectedConfidence) {
-      alert("Choose a readiness level before saving.");
+      alert("Get AI feedback before saving so your readiness level is scored.");
       return;
     }
 
@@ -758,23 +796,10 @@ Transcript: ${transcript}
   }
 
   function clearSession() {
-    state.chunks = [];
-    state.audioBlob = null;
-    state.audioForQuestion = null;
-    state.feedback = null;
-    state.selectedConfidence = "";
-    document.querySelectorAll("[data-confidence]").forEach((button) => {
-      button.classList.remove("is-selected", "is-current");
-    });
-    revokeAudioUrl();
-    state.elements.audioPlayer.classList.add("hidden");
-    state.elements.transcriptText.value = "";
-    state.elements.transcribeBtn.disabled = true;
+    resetAnswerState();
     resetTimer();
-    updateWordCount();
     setStatus("Ready to record.");
     setApiStatus("");
-    renderFeedback({});
     // Save the cleared state (question intact) instead of clearDraft so the
     // user stays on the same question after navigating away and back.
     saveDraft();
@@ -839,15 +864,11 @@ Transcript: ${transcript}
     // Intentionally NOT reset on every init — these survive SPA navigation:
     //   state.audioBlob, state.audioUrl, state.chunks, state.audioForQuestion
 
-    // Belt cards (readiness pickers) — delegated click handler.
-    on(document, "click", (event) => {
-      const card = event.target.closest("[data-confidence]");
-      if (!card) return;
-      // Only count clicks on belt cards in the readiness section,
-      // not on the saved page's confidence filter chips.
-      if (!card.closest(".belt-grid")) return;
-      selectConfidence(card.dataset.confidence);
-    });
+    // Belt cards are display-only. They reflect the AI's assessment of
+    // your answer; clicking them used to let the user override the tier
+    // but that defeated the point of the AI scoring. Tier is now set
+    // exclusively from renderFeedback() based on the clarity/structure/
+    // confidence scores.
 
     on(state.elements.newQuestionBtn, "click", chooseRandomQuestion);
     on(state.elements.levelSelect, "change", () => {
